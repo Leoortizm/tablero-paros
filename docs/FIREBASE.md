@@ -29,6 +29,14 @@ firebase deploy             # publica la página y las reglas
 ```
 La dirección queda en `https://TU-PROYECTO.web.app`.
 
+**Sin instalar nada:** puedes hacer este paso desde Google Cloud Shell (https://shell.cloud.google.com, ya trae Node y Python). Clona el repositorio, crea ahí `firebase/firebase-config.json`, usa `firebase login --no-localhost` y copia el código que te da el navegador.
+
+Para publicar solo la página, sin tocar las reglas de Firestore:
+```
+firebase deploy --only hosting --project TU-PROYECTO
+```
+Al terminar, quita el acceso de "Firebase CLI" en https://myaccount.google.com/permissions; ya no hace falta hasta el siguiente despliegue.
+
 ## 4. Darte permiso de administrador
 1. Abre la página y toca **Acceso administrador**; entra con tu cuenta de Google.
 2. Verás un aviso rojo "Sin permiso de edición. Tu UID: …". Copia ese UID.
@@ -39,6 +47,11 @@ La dirección queda en `https://TU-PROYECTO.web.app`.
 - Para dar acceso a otra persona como administradora, crea su documento en `admins`.
 - Para quitarlo, borra ese documento.
 - Si cambias el código, vuelve a correr `python3 build.py --firebase` y `firebase deploy`.
+
+## Problemas frecuentes
+- **La ventana de inicio de sesión no aparece:** permite las ventanas emergentes del sitio.
+- **Entras y sigue diciendo "Sin permiso de edición":** revisa que el ID del documento en `admins` sea exactamente el UID mostrado (sin espacios) y vuelve a iniciar sesión.
+- **El inicio de sesión falla en un dominio propio:** agrégalo en Authentication → Configuración → Dominios autorizados.
 
 ## Privacidad
 La lectura es pública: quien tenga el enlace puede ver los datos cargados (horas de paro por línea y comentarios de los paros). Revisa que esto esté permitido por tu organización. Si más adelante quieres limitar la lectura, cambia `allow read: if true;` en `firestore.rules` por `if request.auth != null;` y pide inicio de sesión también a los visitantes.

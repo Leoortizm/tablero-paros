@@ -159,6 +159,9 @@
   #tip { position: absolute; z-index: 20; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0,0,0,.18); max-width: 260px; }
   #tip b { font-family: var(--f-mono); font-weight: 500; }
   @media (prefers-reduced-motion: no-preference) { .fill { transition: width .25s ease-out; } }
+  .foot { margin-top: 28px; text-align: center; }
+  .linklike { background: none; border: 0; padding: 4px 8px; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
+  #nodata { margin-top: 16px; color: var(--muted); }
 </style>
 
 <div class="pz">
@@ -187,6 +190,8 @@
     <ul class="files" id="files" aria-live="polite"></ul>
     <div class="priv">Los Excel se leen en tu navegador y no se suben. Solo el resumen de paros se guarda, para volver a abrir el tablero sin cargar todo de nuevo.</div>
   </div>
+
+  <div class="panel" id="nodata" hidden>Cargando datos…</div>
 
   <div id="app" hidden>
     <div class="controls">
@@ -241,6 +246,7 @@
     </section>
   </div>
   <div id="tip" hidden></div>
+  <footer class="foot"><button type="button" id="btn-admin" class="linklike" hidden>Acceso administrador</button></footer>
 </div>
 
 <script id="rules-js">const RULES = {"COMPONENTE": [["transporte aereo|trasporte aereo|tranporte aereo|transp aereo|aereo", "Transporte aéreo"], ["tapa.*carrilera|carrilera.*tapa|carrilera de tapa|carrilera tapa|alimentador de tapa|plato de transferencia de tapa|tapa trabada|tapas trabada|sensor de tapa|carrilera de tapas", "Carrilera de tapas"], ["\\basas?\\b|carrilera|banda de arrastre de asa|maquina de asa|aplicador de asa", "Máquina de asas"], ["regla|sellad|almohadilla|teflon|base de regla", "Regla selladora"], ["tunel termico|termocupla|calibracion de termo|temperatura de tunel|cadena de tunel|cadena montada|montada en tunel|\\btermo\\b", "Túnel térmico"], ["desbobinador|plastico|polietileno|rodillo|cuchilla|variopac|abanico|bobina|film|subida de plastico", "Envolvedora de film (Variopac)"], ["tijereta|envolvedor de pallet|envolvedora de pallet|poli ?strech|strecht|stretch", "Envolvedora de pallet"], ["empujador|agrupador|barra agrupadora|barra trabada|volteador|paquetes? (se )?(pasan|viran|virad)|paquetes virados|caja.* viradas?", "Agrupador / empujador de filas"], ["dosificador de pallet|paletiz|pallet|mesa de carga|colocador de lamina|robot|san martin", "Paletizadora"], ["codific|\\bcop\\b|inkjet|doble codificado|impresion de fecha", "Codificador"], ["mixer|bomba de agua|jarabe|tanque|sala de jarabe|carbonat", "Mixer / jarabes"], ["etiqueta|tambor|\\bcorte\\b|rollo|carrusel|banderin|cepillo|goma|liston|tambor de vacio", "Etiquetadora"], ["capsul|roscador|torque|\\btapas?\\b|anillo|mal tapad", "Capsuladora"], ["rinse|pinza", "Rinser / pinzas"], ["estrella|manguito", "Estrellas de transferencia"], ["valvula|llenadora|llenado|llenados|nivel|diafragma|calderin|co2|filtro|filter|heuft|inspector", "Llenadora"], ["chiller|frio|intercambiador|espumeo|temperatura alta|amoniaco", "Sistema de frío"], ["transporte|transp|cadena de salida|banda|trasporte|tranporte|curva|removedor|agitador|giratorio", "Transportadores"], ["montacarga", "Logística / montacargas"], ["sopladora|soplado|preforma", "Sopladora"]], "CAUSA": [["corte de energia|apagon|falla de energia|sin energia|falta de energia|bajo voltaje", "Falla de energía / servicio"], ["^[0-9 ]+$|^cop$|^sin comentario$|^na$|^ok$", "Sin descripción útil"], ["falta (de )?(pallet|pale)\\b", "Falta de montacargas / pallet lleno"], ["falta (de )?(pantallero|operador)", "Falta de personal"], ["pallet caida|pacas caida|caida de (pallet|pacas)|caida de la san martin", "Caída de pallet / pacas"], ["arranque de plastico|se arranca plastico|rotura de plastico|ruptura de plastico|corta plastico|plastico (se )?(rompe|rompi|corta|roto)|corte de plastico", "Rotura de film"], ["deformado|punto de inyeccion|envase (con|aplastado)|envases? (con|aplastad)|botella aplastada|mala calidad|baja calidad|material defectuoso", "Envase / material defectuoso"], ["codificad.*(apaga|alarma|falla|mal)|(apaga|alarma|falla|mal).*codific|botella mal codificada|doble codificado|codificador", "Falla de codificador"], ["se sale (la )?(banda|estrella|cadena|guia)|banda (verde )?(de arrastre )?(se )?sale|descarril", "Banda / pieza fuera de posición"], ["estrellamiento|estrellando|estrellan", "Estrellamiento de botellas"], ["caida de (envase|botella)|(botella|envase) .*caida|se (cae|caen) (la )?(botella|envase)|botella caida", "Caída de botellas"], ["montacarga|pallet lleno|falta de pallet", "Falta de montacargas / pallet lleno"], ["falta (de )?(envio de )?(envase|botella)|sin envase|falta de preforma|falta envio", "Falta de envase"], ["falta (de )?(tapa|etiqueta|plastico|carton|lamina|material|insumo|jarabe|agua|aire|co2|vapor|energia)", "Falta de insumo / servicio"], ["falta (de )?(personal|operador|operario|mano de obra)|sin personal|sin operador", "Falta de personal"], ["cambio de turno|corte de turno|relevo|reunion|break|comida|almuerzo|capacitacion|charla", "Cambio de turno / relevo / reunión"], ["cambio de sabor|cambio de formato|cambio de presentacion|cambio de sku|saneamiento|\\bcip\\b|sanitizacion|limpieza de linea|cambio de producto", "Cambio de sabor / formato / saneamiento"], ["arranque de linea|pre arranque|primer arranque|arranque de equipo|liberacion de linea|inicio de|inicio de produccion|corte de produccion|fin de produccion|prueba de calidad|prueba de paletizado|prueba de equipo|puesta en marcha", "Arranque / liberación / prueba"], ["cambio de (rollo|bobina|plastico|etiqueta|film|polietileno)|cambio rollo|cambio bobina|nuevo rollo|empalme", "Cambio de rollo / bobina"], ["pierde corte|perdida de corte|perdida de posicion|pierde el corte|se pierde|corte de etiqueta|etiquetas? larga|etiquetas? corta", "Pérdida de corte de etiqueta"], ["se enred|engom|enrede|enredo", "Enredo / engomado"], ["paquete.*(desarm|abiert|mal sellad|sale)|desarman|paquetes? salen|mal sellad|sellado|no sella|pasan virad|viran|virad|volteo|paquete desarmado|desarme de paquete", "Paquetes desarmados / mal sellados / virados"], ["botellas? (se )?(cae|caen|caid|cayend)|caida de botella|se cae botella|envases? (cae|caid)|cae envase|se caen", "Caída de botellas"], ["traba|trabo|trabamiento|trabad|atasc|atrapad|tranc|queda (el )?(envase|botella|plastico)|barra trabada", "Atasco / trabamiento"], ["acumul|transporte lleno|\\blleno\\b|\\bllenas?\\b", "Acumulación / transporte lleno"], ["sensor|fotocelda|fotocelula|encoder|\\brele\\b|\\bmicro\\b|tarjeta|variador|alarma|\\bplc\\b|pantalla|cable|breaker|fusible|senal|termocupla|electric|programacion|\\bhmi\\b|comunicacion|sobre temperatura|pulsador|motor|se apaga", "Falla eléctrica / sensor / alarma"], ["temperatura|frio|espum|cadencia|velocidad", "Temperatura / frío / baja velocidad"], ["fuga|manguera|venteo|desgast|\\brota\\b|roto|rotura|danad|dano|mal estado|deform|fisur|pega|flojo|aflojad|torcid|quebrad|rodamiento|resorte|cadena|banda en mal|eje|pinon|chumacera|manguito|fuga de aire|fuga de co2|barandas?|guias? en mal", "Desgaste / daño mecánico"], ["calibr|ajust|alinea|regul|nivel de|posicion|torque|altura|sincroniz|descentrad|desplazamiento|reapriete|apriete", "Ajuste / calibración"], ["limpieza|limpiar|lavado|aseo|saneamiento", "Limpieza"], ["cambio de (?!turno|sabor|formato|rollo|bobina)|cambio .*(freno|balin|resorte|cadena|pinza|sello|empaque|rodamiento|filtro|valvula|correa|banda)", "Cambio de pieza / reparación"], ["problema|parada|paradas|fallas|falla|fallo|arreglo|reparacion|revision|inspeccion|mantenimiento|cambio", "Otras fallas / intervención"]], "EQUIPO_LVL1": [["^trans|transp|aereo|trans-", "Transportadores"], ["etiquet", "Etiquetadora"], ["termoenc", "Termoencogible"], ["rinse", "Rinser / pinzas"], ["llenadora|heuft|insp", "Llenadora"], ["paletiz|paletz|acumulador|mesa de carga|laminas", "Paletizadora"], ["envolvedor.*pallet", "Envolvedora de pallet"], ["envolvedor", "Envolvedora de film (Variopac)"], ["volteador", "Agrupador / empujador de filas"], ["capsul|tapas", "Capsuladora"], ["asas", "Máquina de asas"], ["codific", "Codificador"], ["externa", "Causa externa"], ["programada", "Programada"]], "TYPOS": {"trasporte": "transporte", "tranporte": "transporte", "trasnporte": "transporte", "transprote": "transporte", "transpote": "transporte", "trabda": "trabada", "trabadas": "trabada", "trabado": "trabada", "trabados": "trabada", "trambada": "trabada", "trabamientos": "trabamiento", "limpiesa": "limpieza", "limpiza": "limpieza", "limpeza": "limpieza", "esatdo": "estado", "estados": "estado", "estadp": "estado", "llenaodra": "llenadora", "llenadra": "llenadora", "lenadora": "llenadora", "llenador": "llenadora", "llenadoras": "llenadora", "calibracio": "calibracion", "calibraciones": "calibracion", "calibraciom": "calibracion", "calibrar": "calibracion", "calibrado": "calibracion", "ajustes": "ajuste", "ajsute": "ajuste", "ajusta": "ajuste", "ajustar": "ajuste", "baranda": "barandas", "desformado": "deformado", "dana": "dano", "danada": "danado", "danados": "danado", "danadas": "danado", "botellas": "botella", "envases": "envase", "paquetes": "paquete", "guias": "guia", "asas": "asa", "pinzas": "pinza", "estrellas": "estrella", "etiquetados": "etiquetadora", "etiquetado": "etiquetadora", "envolvedor": "envolvedora", "capsulador": "capsuladora", "capsulado": "capsuladora", "montacargas": "montacarga", "caidas": "caida", "caidos": "caida", "caido": "caida", "virados": "virado", "viradas": "virada", "virada": "virado", "aradas": "paradas", "parada": "paradas", "tapas": "tapa", "rollos": "rollo", "bobinas": "bobina", "cuchillas": "cuchilla", "valvulas": "valvula", "sensores": "sensor", "rodillos": "rodillo", "cadenas": "cadena", "sellados": "sellado", "pantallero": "operador", "arrancada": "arranque", "enrreda": "enreda", "trnasferencia": "transferencia", "acumelacion": "acumulacion", "aza": "asa", "trbada": "trabada", "travada": "trabada", "travado": "trabada", "travadas": "trabada", "tranportador": "transportador", "dayo": "dano", "ajuate": "ajuste", "acumulacion": "acumulacion", "flojas": "flojo", "apagan": "apaga", "apago": "apaga", "enrrede": "enreda", "enredan": "enreda", "enredo": "enreda", "enredada": "enreda", "plasticos": "plastico", "polietileno": "plastico"}, "VALID_COMP": ["Agrupador / empujador de filas", "Capsuladora", "Carrilera de tapas", "Codificador", "Envolvedora de film (Variopac)", "Envolvedora de pallet", "Estrellas de transferencia", "Etiquetadora", "Llenadora", "Logística / montacargas", "Línea completa", "Mixer / jarabes", "Máquina de asas", "Paletizadora", "Regla selladora", "Rinser / pinzas", "Sistema de frío", "Sopladora", "Termoencogible", "Transportadores", "Transporte aéreo", "Túnel térmico"]};</script>
@@ -566,6 +572,17 @@ if (typeof module !== 'undefined') module.exports = Core;
   /* ---------- guardado en línea (base de datos del artefacto, privada de tu cuenta) ---------- */
   const cloud = { db: null, saving: false };
   const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  /* modo edición: en la versión pública solo el administrador (con sesión) carga reportes */
+  const edit = { on: !window.__READONLY };
+  function refreshNoData() { $('nodata').hidden = edit.on || !$('app').hidden; }
+  function applyEdit() {
+    $('btn-load').style.display = edit.on ? '' : 'none';
+    $('drop').style.display = edit.on ? '' : 'none';
+    const a = $('btn-admin');
+    a.hidden = !window.TableroAuth;
+    a.textContent = window.__auth && window.__auth.email ? 'Cerrar sesión' : 'Acceso administrador';
+    refreshNoData();
+  }
   const cloudStatus = (t, bad) => { const e = $('cloud'); e.textContent = t; e.style.color = bad ? 'var(--bad)' : ''; };
   async function pack(obj) {
     const s = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream('gzip'));
@@ -611,8 +628,11 @@ if (typeof module !== 'undefined') module.exports = Core;
       }
       if (changed) { await persist(); init(false); }
       const up = names().filter((n) => !remote.has(n) || remote.get(n) < store.lines[n].cargado);
-      if (up.length && !cloud.saving) { cloud.saving = true; await cloudSave(up); cloud.saving = false; }
-      else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
+      if (edit.on && up.length && !cloud.saving) { cloud.saving = true; await cloudSave(up); cloud.saving = false; }
+      else if (!edit.on) {
+        cloudStatus(names().length ? 'Datos hasta el ' + dLong.format(D(maxDate())) : 'Aún no hay datos publicados.');
+        if (!names().length) $('nodata').textContent = 'Aún no hay datos publicados.';
+      } else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
     }, () => cloudStatus('Sin conexión a la base en línea', true));
   }
 
@@ -651,6 +671,7 @@ if (typeof module !== 'undefined') module.exports = Core;
 
   let busy = false;
   async function handleFiles(list) {
+    if (!edit.on) return;
     const files = [...list].filter((f) => /\.xlsx?$/i.test(f.name));
     const ul = $('files');
     if (!files.length) { ul.replaceChildren(el('li', { class: 'err', text: 'Elige archivos Excel (.xlsx) descargados de Atlas.' })); return; }
@@ -735,6 +756,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
     }
     $('app').hidden = false;
+    refreshNoData();
     renderAll();
   }
 
@@ -1014,6 +1036,19 @@ if (typeof module !== 'undefined') module.exports = Core;
   window.addEventListener('drop', (e) => e.preventDefault());
   let rz;
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('app').hidden) renderBars(); }, 150); });
+
+  window.addEventListener('tablero-auth', (e) => {
+    window.__auth = e.detail;
+    edit.on = !!e.detail.admin;
+    applyEdit();
+    if (e.detail.email && !e.detail.admin) cloudStatus('Sin permiso de edición. Tu UID: ' + e.detail.uid, true);
+  });
+  $('btn-admin').addEventListener('click', () => {
+    if (!window.TableroAuth) return;
+    Promise.resolve(window.__auth && window.__auth.email ? window.TableroAuth.signOut() : window.TableroAuth.signIn()).catch(() => cloudStatus('No se pudo iniciar sesión', true));
+  });
+  if (window.__auth) edit.on = !!window.__auth.admin;
+  applyEdit();
 
   restore().then((ok) => { if (ok) init(true); }).then(cloudStart);
 })();

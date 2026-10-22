@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Resumen de cada línea: lo lee cualquiera, solo escribe un administrador
+    match /lines/{lineId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && request.resource.data.z.size() < 900000;
+      allow delete: if isAdmin();
+    }
+
+    // Lista de administradores: se edita solo desde la consola de Firebase
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+  }
+}

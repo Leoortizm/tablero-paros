@@ -21,12 +21,18 @@ Todo se procesa en el navegador: los Excel no se suben a ningún servidor.
 | `build.py` | Junta lo anterior en `dist/` |
 | `dist/tablero.html` | Fragmento HTML listo para publicar |
 | `dist/index.html` | Página completa, se abre directo en el navegador |
+| `firebase/` | Puente a Firebase (Firestore y acceso con Google) |
+| `firestore.rules`, `firebase.json` | Reglas de seguridad y configuración de Hosting |
 | `tools/check.js` | Revisa reportes desde la terminal |
+| `docs/FIREBASE.md` | Guía para publicarlo en Firebase |
 
 ## Cómo se arma
 ```
 python3 build.py
 ```
+
+## Publicarlo
+Ver [docs/FIREBASE.md](docs/FIREBASE.md): página pública de solo lectura y carga de datos solo para el administrador.
 
 ## Formato esperado del reporte
 Hoja `Data` con el encabezado en la fila 3 y las columnas `Asset`, `Logical Date`, `Start Time`, `End Time`, `Minutes`, `Super Reason`, `Reason Lvl1`, `Reason Lvl2` y `Notes`. Un archivo puede traer una o varias líneas (se agrupan por `Asset`). Atlas escribe una dimensión de hoja errónea (`A1:X6`); `core.js` recalcula el rango real.

@@ -5,3 +5,9 @@
 *.xlsm
 node_modules/
 .DS_Store
+
+# Firebase: configuración propia y salida de armado
+firebase/firebase-config.json
+public/
+.firebase/
+.firebaserc

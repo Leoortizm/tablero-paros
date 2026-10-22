@@ -159,6 +159,9 @@
   #tip { position: absolute; z-index: 20; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0,0,0,.18); max-width: 260px; }
   #tip b { font-family: var(--f-mono); font-weight: 500; }
   @media (prefers-reduced-motion: no-preference) { .fill { transition: width .25s ease-out; } }
+  .foot { margin-top: 28px; text-align: center; }
+  .linklike { background: none; border: 0; padding: 4px 8px; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
+  #nodata { margin-top: 16px; color: var(--muted); }
 </style>
 
 <div class="pz">
@@ -187,6 +190,8 @@
     <ul class="files" id="files" aria-live="polite"></ul>
     <div class="priv">Los Excel se leen en tu navegador y no se suben. Solo el resumen de paros se guarda, para volver a abrir el tablero sin cargar todo de nuevo.</div>
   </div>
+
+  <div class="panel" id="nodata" hidden>Cargando datos…</div>
 
   <div id="app" hidden>
     <div class="controls">
@@ -241,6 +246,7 @@
     </section>
   </div>
   <div id="tip" hidden></div>
+  <footer class="foot"><button type="button" id="btn-admin" class="linklike" hidden>Acceso administrador</button></footer>
 </div>
 
 <script id="rules-js">const RULES = /*RULES_JSON*/;</script>
@@ -293,6 +299,17 @@
   /* ---------- guardado en línea (base de datos del artefacto, privada de tu cuenta) ---------- */
   const cloud = { db: null, saving: false };
   const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  /* modo edición: en la versión pública solo el administrador (con sesión) carga reportes */
+  const edit = { on: !window.__READONLY };
+  function refreshNoData() { $('nodata').hidden = edit.on || !$('app').hidden; }
+  function applyEdit() {
+    $('btn-load').style.display = edit.on ? '' : 'none';
+    $('drop').style.display = edit.on ? '' : 'none';
+    const a = $('btn-admin');
+    a.hidden = !window.TableroAuth;
+    a.textContent = window.__auth && window.__auth.email ? 'Cerrar sesión' : 'Acceso administrador';
+    refreshNoData();
+  }
   const cloudStatus = (t, bad) => { const e = $('cloud'); e.textContent = t; e.style.color = bad ? 'var(--bad)' : ''; };
   async function pack(obj) {
     const s = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream('gzip'));
@@ -338,8 +355,11 @@
       }
       if (changed) { await persist(); init(false); }
       const up = names().filter((n) => !remote.has(n) || remote.get(n) < store.lines[n].cargado);
-      if (up.length && !cloud.saving) { cloud.saving = true; await cloudSave(up); cloud.saving = false; }
-      else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
+      if (edit.on && up.length && !cloud.saving) { cloud.saving = true; await cloudSave(up); cloud.saving = false; }
+      else if (!edit.on) {
+        cloudStatus(names().length ? 'Datos hasta el ' + dLong.format(D(maxDate())) : 'Aún no hay datos publicados.');
+        if (!names().length) $('nodata').textContent = 'Aún no hay datos publicados.';
+      } else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
     }, () => cloudStatus('Sin conexión a la base en línea', true));
   }
 
@@ -378,6 +398,7 @@
 
   let busy = false;
   async function handleFiles(list) {
+    if (!edit.on) return;
     const files = [...list].filter((f) => /\.xlsx?$/i.test(f.name));
     const ul = $('files');
     if (!files.length) { ul.replaceChildren(el('li', { class: 'err', text: 'Elige archivos Excel (.xlsx) descargados de Atlas.' })); return; }
@@ -462,6 +483,7 @@
       $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
     }
     $('app').hidden = false;
+    refreshNoData();
     renderAll();
   }
 
@@ -741,6 +763,19 @@
   window.addEventListener('drop', (e) => e.preventDefault());
   let rz;
   window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('app').hidden) renderBars(); }, 150); });
+
+  window.addEventListener('tablero-auth', (e) => {
+    window.__auth = e.detail;
+    edit.on = !!e.detail.admin;
+    applyEdit();
+    if (e.detail.email && !e.detail.admin) cloudStatus('Sin permiso de edición. Tu UID: ' + e.detail.uid, true);
+  });
+  $('btn-admin').addEventListener('click', () => {
+    if (!window.TableroAuth) return;
+    Promise.resolve(window.__auth && window.__auth.email ? window.TableroAuth.signOut() : window.TableroAuth.signIn()).catch(() => cloudStatus('No se pudo iniciar sesión', true));
+  });
+  if (window.__auth) edit.on = !!window.__auth.admin;
+  applyEdit();
 
   restore().then((ok) => { if (ok) init(true); }).then(cloudStart);
 })();

@@ -1,0 +1,1021 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>Tablero de Paros</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Concepto: tablero de sala de control. Datos densos en paneles planos, cifras en mono, naranja de señal solo para el tiempo de paro. */
+  :root {
+    /* paleta de acento + neutros azul pizarra */
+    --b-purple: #7a4fa3; --b-orange: #f47b20; --b-green: #78b543; --b-blue: #2ba3dd; --b-yellow: #ffc20e;
+    --band: #2d3e4a; --on-band: #ffffff;
+    --bg: #edf0f3; --panel: #ffffff; --ink: #1f2d36; --muted: #52636e; --line: #d3dae0;
+    --accent: #c9560b; --on-accent: #ffffff; --bar-mute: #b8c3cb; --sel: #e1e7ec; --cell0: #f1f4f7;
+    --ok: #17794a; --bad: #b3261e; --warn: #8a5a00; --focus: #0b5cad;
+    --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --f-body: "Barlow", system-ui, sans-serif;
+    --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --band: #1b2933; --bg: #0d1418; --panel: #151e24; --ink: #e8eef2; --muted: #8fa1ad; --line: #26333b;
+      --accent: #f47b20; --on-accent: #1a0d03; --bar-mute: #3b4953; --sel: #1f2c34; --cell0: #1a252c;
+      --ok: #4cc38a; --bad: #ff7b72; --warn: #e3b341; --focus: #6cb6ff; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --band: #1b2933; --bg: #0d1418; --panel: #151e24; --ink: #e8eef2; --muted: #8fa1ad; --line: #26333b;
+    --accent: #f47b20; --on-accent: #1a0d03; --bar-mute: #3b4953; --sel: #1f2c34; --cell0: #1a252c;
+    --ok: #4cc38a; --bad: #ff7b72; --warn: #e3b341; --focus: #6cb6ff; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font: 400 15px/1.45 var(--f-body);
+    padding-block: 20px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .pz { position: relative; max-width: 1180px; margin: 0 auto; }
+  h1, h2, h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: .01em; margin: 0; text-wrap: balance; }
+  h1 { font-size: 34px; line-height: 1.05; }
+  h2 { font-size: 22px; }
+  h3 { font-size: 17px; }
+  .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+  .small { font-size: 12.5px; }
+  button, input, select { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible, .pick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .top { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; padding: 20px 22px 26px; border-radius: 10px; background: var(--band); color: var(--on-band); }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, var(--b-purple) 0 20%, var(--b-orange) 20% 40%, var(--b-green) 40% 60%, var(--b-blue) 60% 80%, var(--b-yellow) 80% 100%); }
+  .top > * { position: relative; z-index: 1; }
+  .top h1 { color: var(--on-band); }
+  .top p { margin: 4px 0 0; color: rgba(255,255,255,.78); max-width: 62ch; }
+  .top .muted { color: rgba(255,255,255,.72); }
+  .top .btn.ghost { color: var(--on-band); border-color: rgba(255,255,255,.5); }
+  .top .btn.ghost:hover { background: rgba(255,255,255,.12); }
+  .top button:focus-visible { outline-color: #fff; }
+  .fizz { position: absolute !important; right: 0; top: 0; height: 100%; width: 320px; z-index: 0 !important; pointer-events: none; }
+  .fizz circle { fill: none; stroke-width: 2; opacity: .55; }
+  @media (prefers-reduced-motion: no-preference) { .fizz circle { animation: rise 9s ease-in infinite; } .fizz circle:nth-child(2n) { animation-duration: 12s; animation-delay: -4s; } .fizz circle:nth-child(3n) { animation-duration: 7s; animation-delay: -2s; } }
+  @keyframes rise { from { transform: translateY(18px); opacity: 0; } 20% { opacity: .55; } to { transform: translateY(-70px); opacity: 0; } }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--lc); margin-right: 7px; vertical-align: 0; }
+  .btn { background: var(--ink); color: var(--bg); border: 0; padding: 9px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
+  .panel > header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 12px; }
+  .panel > header p { margin: 0; color: var(--muted); font-size: 13px; }
+  section.block { margin-top: 18px; }
+
+  /* zona de carga */
+  .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 28px 20px; text-align: center; background: var(--panel); transition: border-color .15s, background .15s; }
+  .drop.over { border-color: var(--accent); background: var(--sel); }
+  .drop.compact { padding: 10px 14px; text-align: left; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+  .drop h2 { margin-bottom: 6px; }
+  .drop ol { text-align: left; max-width: 52ch; margin: 14px auto 0; padding-left: 20px; color: var(--muted); }
+  .files { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; text-align: left; font-size: 13.5px; overflow-x: auto; }
+  .compact .files { margin: 4px 0 0; flex-basis: 100%; }
+  .files li { display: grid; gap: 6px; justify-items: start; }
+  .fh { font-weight: 600; overflow-wrap: anywhere; }
+  .lt { display: grid; grid-template-columns: repeat(var(--cols), auto); gap: 3px 22px; justify-content: start; align-items: baseline; }
+  .lt .lh { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 3px; white-space: nowrap; }
+  .lt .ln { font-weight: 600; white-space: nowrap; }
+  .lt .dt { font-family: var(--f-mono); white-space: nowrap; }
+  .lt .warn { color: var(--warn); }
+  .files .err { color: var(--bad); }
+  .ok-mark { color: var(--ok); font-weight: 600; }
+  .priv { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+
+  /* controles */
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-top: 16px; }
+  .ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .ctl > span { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); flex-wrap: wrap; }
+  .seg button { background: transparent; border: 0; padding: 7px 12px; cursor: pointer; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 600; }
+  input[type="date"] { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+  .notice { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--warn); background: var(--panel); border-radius: 0 6px 6px 0; font-size: 13.5px; }
+
+  /* tarjetas por línea */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 12px; margin-top: 16px; }
+  .kpi { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px 14px; cursor: pointer; display: grid; gap: 8px; min-width: 0; box-shadow: inset 0 5px 0 var(--lc); }
+  .kpi[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink), inset 0 5px 0 var(--lc); }
+  .kpi .nm { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .kpi .big { font: 500 38px/1 var(--f-mono); letter-spacing: -.02em; }
+  .kpi .row { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; border-top: 1px solid var(--line); padding-top: 7px; }
+  .delta.good { color: var(--ok); } .delta.bad { color: var(--bad); } .delta.flat { color: var(--muted); }
+
+  /* barras por día */
+  .bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 14px 20px; }
+  .bars h3 { font-size: 15px; margin-bottom: 2px; display: flex; justify-content: space-between; gap: 8px; }
+  .bars svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .sw.line { height: 2px; width: 14px; vertical-align: 3px; border-radius: 0; background: var(--ink); }
+
+  /* detalle del día */
+  .daynav { display: flex; align-items: center; gap: 8px; }
+  .daynav button { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; width: 34px; height: 32px; cursor: pointer; }
+  .daynav button:disabled { opacity: .4; cursor: default; }
+  .daynav .when { font-family: var(--f-display); font-size: 20px; font-weight: 600; min-width: 11ch; text-align: center; text-transform: capitalize; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
+  .stat b { display: block; font: 500 24px/1.2 var(--f-mono); }
+  .stat span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 18px 28px; }
+  .two h3 { margin-bottom: 8px; }
+  .hb { display: grid; gap: 9px; }
+  .hb .it { display: grid; gap: 3px; min-width: 0; }
+  .hb .lab { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+  .hb .lab span:first-child { overflow-wrap: anywhere; }
+  .hb .track { height: 8px; background: var(--cell0); border-radius: 2px; }
+  .hb .fill { height: 100%; background: var(--accent); border-radius: 2px; min-width: 2px; }
+  .hb .fill.ext { background: var(--bar-mute); }
+  .hb .nt { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+  .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; color: var(--muted); margin-left: 6px; white-space: nowrap; }
+  .long { display: grid; gap: 8px; }
+  .long .l { display: grid; grid-template-columns: 4.2rem 4.6rem 1fr; gap: 4px 10px; align-items: baseline; font-size: 14px; }
+  .long .l .nt { grid-column: 3; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+  .empty { color: var(--muted); font-size: 14px; }
+
+  /* mapa de calor */
+  .scroll { overflow-x: auto; }
+  .heat { display: grid; gap: 2px; min-width: 34rem; align-items: stretch; }
+  .heat .rl { font-size: 13px; padding-right: 8px; display: flex; align-items: center; overflow-wrap: anywhere; line-height: 1.2; }
+  .heat .cl { font: 400 11px/1.1 var(--f-mono); color: var(--muted); text-align: center; padding-bottom: 3px; }
+  .heat .cl.sel, .heat .c.sel { outline: 2px solid var(--ink); outline-offset: -1px; }
+  .heat .c { height: 28px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font: 400 11px/1 var(--f-mono); cursor: pointer; background: var(--cell0); border: 0; padding: 0; }
+  .heat .tot { font: 500 12px var(--f-mono); display: flex; align-items: center; justify-content: end; padding-left: 8px; }
+
+  /* tabla */
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--ink); padding: 6px 10px 6px 0; }
+  td { border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; vertical-align: top; }
+  td.n, th.n { text-align: right; font-family: var(--f-mono); white-space: nowrap; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap; }
+  .b-bad { color: var(--bad); } .b-warn { color: var(--warn); } .b-ok { color: var(--ok); } .b-flat { color: var(--muted); }
+  .nota { color: var(--muted); font-size: 12.5px; max-width: 44ch; overflow-wrap: anywhere; }
+  @media (max-width: 720px) { .hide-s { display: none; } h1 { font-size: 28px; } .kpi .big { font-size: 32px; } }
+
+  #tip { position: absolute; z-index: 20; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0,0,0,.18); max-width: 260px; }
+  #tip b { font-family: var(--f-mono); font-weight: 500; }
+  @media (prefers-reduced-motion: no-preference) { .fill { transition: width .25s ease-out; } }
+</style>
+
+<div class="pz">
+  <div class="top">
+    <svg class="fizz" viewBox="0 0 320 120" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+      <circle cx="40" cy="95" r="9" stroke="var(--b-blue)"/><circle cx="85" cy="70" r="5" stroke="#fff"/><circle cx="130" cy="100" r="13" stroke="var(--b-green)"/><circle cx="172" cy="62" r="7" stroke="var(--b-yellow)"/><circle cx="215" cy="92" r="10" stroke="#fff"/><circle cx="255" cy="55" r="6" stroke="var(--b-orange)"/><circle cx="290" cy="98" r="12" stroke="var(--b-purple)"/><circle cx="105" cy="40" r="4" stroke="#fff"/><circle cx="235" cy="30" r="4" stroke="var(--b-blue)"/>
+    </svg>
+    <div>
+      <h1>Tablero de paros</h1>
+      <p>Paros de líneas de producción, día a día. Los datos salen de los reportes de Atlas que cargues.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="muted small" id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
+  </div>
+  <input type="file" id="file" accept=".xlsx,.xls" multiple hidden>
+
+  <div class="drop" id="drop">
+    <div id="drop-intro">
+      <h2>Suelta aquí los reportes de Atlas</h2>
+      <div class="muted">Un archivo Excel por línea (Reporte YTD). También puedes tocar para elegirlos.</div>
+      <ol>
+        <li>En Atlas, descarga el reporte de eventos (Uptime &amp; Downtime) de cada línea.</li>
+        <li>Arrástralos juntos a este recuadro. La lectura tarda unos segundos por archivo.</li>
+        <li>Puedes cargar solo lo reciente (por ejemplo el último mes): se reescriben las fechas que traiga el reporte y se conserva lo anterior. Empieza el reporte en un día completo.</li>
+      </ol>
+    </div>
+    <ul class="files" id="files" aria-live="polite"></ul>
+    <div class="priv">Los Excel se leen en tu navegador y no se suben. Solo el resumen de paros se guarda, para volver a abrir el tablero sin cargar todo de nuevo.</div>
+  </div>
+
+  <div id="app" hidden>
+    <div class="controls">
+      <div class="ctl"><span>Línea</span><div class="seg" id="seg-line" role="group" aria-label="Línea"></div></div>
+      <div class="ctl"><span>Periodo</span><input type="date" id="d-from" aria-label="Desde"><span aria-hidden="true">a</span><input type="date" id="d-to" aria-label="Hasta"><div class="seg" id="seg-pre" role="group" aria-label="Atajos de periodo"></div></div>
+      <div class="ctl"><span>Tipo de paro</span><div class="seg" id="seg-type" role="group" aria-label="Tipo de paro"></div></div>
+    </div>
+    <div class="notice" id="notice" hidden></div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <section class="block panel">
+      <header>
+        <h2 id="bars-title">Horas de paro por día</h2>
+        <p id="bars-sub"></p>
+      </header>
+      <div class="bars" id="bars"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i><b id="leg-in" style="font-weight:400"></b></span>
+        <span id="leg-out"><i class="sw" style="background:var(--bar-mute)"></i>Antes del periodo</span>
+        <span id="leg-avg"><i class="sw line"></i>Promedio móvil de 7 días</span>
+      </div>
+    </section>
+
+    <section class="block panel">
+      <header>
+        <h2>Detalle del día · <span id="day-line"></span></h2>
+        <div class="daynav">
+          <button type="button" id="day-prev" aria-label="Día anterior">‹</button>
+          <div class="when" id="day-when"></div>
+          <button type="button" id="day-next" aria-label="Día siguiente">›</button>
+        </div>
+      </header>
+      <div id="day-body"></div>
+    </section>
+
+    <section class="block panel">
+      <header>
+        <h2 id="heat-title">Qué se repite</h2>
+        <p id="heat-sub"></p>
+      </header>
+      <div class="scroll"><div class="heat" id="heat"></div></div>
+    </section>
+
+    <section class="block panel">
+      <header>
+        <h2>En qué enfocarse</h2>
+        <p id="cmp-sub"></p>
+      </header>
+      <div class="scroll"><table id="cmp"></table></div>
+      <p class="small muted" style="margin:10px 0 0">Estado: <b>Nuevo</b> o <b>Resuelto</b> si en uno de los dos periodos hay muy pocas horas (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b> si cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b> si ocurre en la mitad de los días o más; si no, <b>Intermitente</b>. Los comentarios se estandarizan por reglas de texto: revisa los casos dudosos.</p>
+    </section>
+  </div>
+  <div id="tip" hidden></div>
+</div>
+
+<script id="rules-js">const RULES = {"COMPONENTE": [["transporte aereo|trasporte aereo|tranporte aereo|transp aereo|aereo", "Transporte aéreo"], ["tapa.*carrilera|carrilera.*tapa|carrilera de tapa|carrilera tapa|alimentador de tapa|plato de transferencia de tapa|tapa trabada|tapas trabada|sensor de tapa|carrilera de tapas", "Carrilera de tapas"], ["\\basas?\\b|carrilera|banda de arrastre de asa|maquina de asa|aplicador de asa", "Máquina de asas"], ["regla|sellad|almohadilla|teflon|base de regla", "Regla selladora"], ["tunel termico|termocupla|calibracion de termo|temperatura de tunel|cadena de tunel|cadena montada|montada en tunel|\\btermo\\b", "Túnel térmico"], ["desbobinador|plastico|polietileno|rodillo|cuchilla|variopac|abanico|bobina|film|subida de plastico", "Envolvedora de film (Variopac)"], ["tijereta|envolvedor de pallet|envolvedora de pallet|poli ?strech|strecht|stretch", "Envolvedora de pallet"], ["empujador|agrupador|barra agrupadora|barra trabada|volteador|paquetes? (se )?(pasan|viran|virad)|paquetes virados|caja.* viradas?", "Agrupador / empujador de filas"], ["dosificador de pallet|paletiz|pallet|mesa de carga|colocador de lamina|robot|san martin", "Paletizadora"], ["codific|\\bcop\\b|inkjet|doble codificado|impresion de fecha", "Codificador"], ["mixer|bomba de agua|jarabe|tanque|sala de jarabe|carbonat", "Mixer / jarabes"], ["etiqueta|tambor|\\bcorte\\b|rollo|carrusel|banderin|cepillo|goma|liston|tambor de vacio", "Etiquetadora"], ["capsul|roscador|torque|\\btapas?\\b|anillo|mal tapad", "Capsuladora"], ["rinse|pinza", "Rinser / pinzas"], ["estrella|manguito", "Estrellas de transferencia"], ["valvula|llenadora|llenado|llenados|nivel|diafragma|calderin|co2|filtro|filter|heuft|inspector", "Llenadora"], ["chiller|frio|intercambiador|espumeo|temperatura alta|amoniaco", "Sistema de frío"], ["transporte|transp|cadena de salida|banda|trasporte|tranporte|curva|removedor|agitador|giratorio", "Transportadores"], ["montacarga", "Logística / montacargas"], ["sopladora|soplado|preforma", "Sopladora"]], "CAUSA": [["corte de energia|apagon|falla de energia|sin energia|falta de energia|bajo voltaje", "Falla de energía / servicio"], ["^[0-9 ]+$|^cop$|^sin comentario$|^na$|^ok$", "Sin descripción útil"], ["falta (de )?(pallet|pale)\\b", "Falta de montacargas / pallet lleno"], ["falta (de )?(pantallero|operador)", "Falta de personal"], ["pallet caida|pacas caida|caida de (pallet|pacas)|caida de la san martin", "Caída de pallet / pacas"], ["arranque de plastico|se arranca plastico|rotura de plastico|ruptura de plastico|corta plastico|plastico (se )?(rompe|rompi|corta|roto)|corte de plastico", "Rotura de film"], ["deformado|punto de inyeccion|envase (con|aplastado)|envases? (con|aplastad)|botella aplastada|mala calidad|baja calidad|material defectuoso", "Envase / material defectuoso"], ["codificad.*(apaga|alarma|falla|mal)|(apaga|alarma|falla|mal).*codific|botella mal codificada|doble codificado|codificador", "Falla de codificador"], ["se sale (la )?(banda|estrella|cadena|guia)|banda (verde )?(de arrastre )?(se )?sale|descarril", "Banda / pieza fuera de posición"], ["estrellamiento|estrellando|estrellan", "Estrellamiento de botellas"], ["caida de (envase|botella)|(botella|envase) .*caida|se (cae|caen) (la )?(botella|envase)|botella caida", "Caída de botellas"], ["montacarga|pallet lleno|falta de pallet", "Falta de montacargas / pallet lleno"], ["falta (de )?(envio de )?(envase|botella)|sin envase|falta de preforma|falta envio", "Falta de envase"], ["falta (de )?(tapa|etiqueta|plastico|carton|lamina|material|insumo|jarabe|agua|aire|co2|vapor|energia)", "Falta de insumo / servicio"], ["falta (de )?(personal|operador|operario|mano de obra)|sin personal|sin operador", "Falta de personal"], ["cambio de turno|corte de turno|relevo|reunion|break|comida|almuerzo|capacitacion|charla", "Cambio de turno / relevo / reunión"], ["cambio de sabor|cambio de formato|cambio de presentacion|cambio de sku|saneamiento|\\bcip\\b|sanitizacion|limpieza de linea|cambio de producto", "Cambio de sabor / formato / saneamiento"], ["arranque de linea|pre arranque|primer arranque|arranque de equipo|liberacion de linea|inicio de|inicio de produccion|corte de produccion|fin de produccion|prueba de calidad|prueba de paletizado|prueba de equipo|puesta en marcha", "Arranque / liberación / prueba"], ["cambio de (rollo|bobina|plastico|etiqueta|film|polietileno)|cambio rollo|cambio bobina|nuevo rollo|empalme", "Cambio de rollo / bobina"], ["pierde corte|perdida de corte|perdida de posicion|pierde el corte|se pierde|corte de etiqueta|etiquetas? larga|etiquetas? corta", "Pérdida de corte de etiqueta"], ["se enred|engom|enrede|enredo", "Enredo / engomado"], ["paquete.*(desarm|abiert|mal sellad|sale)|desarman|paquetes? salen|mal sellad|sellado|no sella|pasan virad|viran|virad|volteo|paquete desarmado|desarme de paquete", "Paquetes desarmados / mal sellados / virados"], ["botellas? (se )?(cae|caen|caid|cayend)|caida de botella|se cae botella|envases? (cae|caid)|cae envase|se caen", "Caída de botellas"], ["traba|trabo|trabamiento|trabad|atasc|atrapad|tranc|queda (el )?(envase|botella|plastico)|barra trabada", "Atasco / trabamiento"], ["acumul|transporte lleno|\\blleno\\b|\\bllenas?\\b", "Acumulación / transporte lleno"], ["sensor|fotocelda|fotocelula|encoder|\\brele\\b|\\bmicro\\b|tarjeta|variador|alarma|\\bplc\\b|pantalla|cable|breaker|fusible|senal|termocupla|electric|programacion|\\bhmi\\b|comunicacion|sobre temperatura|pulsador|motor|se apaga", "Falla eléctrica / sensor / alarma"], ["temperatura|frio|espum|cadencia|velocidad", "Temperatura / frío / baja velocidad"], ["fuga|manguera|venteo|desgast|\\brota\\b|roto|rotura|danad|dano|mal estado|deform|fisur|pega|flojo|aflojad|torcid|quebrad|rodamiento|resorte|cadena|banda en mal|eje|pinon|chumacera|manguito|fuga de aire|fuga de co2|barandas?|guias? en mal", "Desgaste / daño mecánico"], ["calibr|ajust|alinea|regul|nivel de|posicion|torque|altura|sincroniz|descentrad|desplazamiento|reapriete|apriete", "Ajuste / calibración"], ["limpieza|limpiar|lavado|aseo|saneamiento", "Limpieza"], ["cambio de (?!turno|sabor|formato|rollo|bobina)|cambio .*(freno|balin|resorte|cadena|pinza|sello|empaque|rodamiento|filtro|valvula|correa|banda)", "Cambio de pieza / reparación"], ["problema|parada|paradas|fallas|falla|fallo|arreglo|reparacion|revision|inspeccion|mantenimiento|cambio", "Otras fallas / intervención"]], "EQUIPO_LVL1": [["^trans|transp|aereo|trans-", "Transportadores"], ["etiquet", "Etiquetadora"], ["termoenc", "Termoencogible"], ["rinse", "Rinser / pinzas"], ["llenadora|heuft|insp", "Llenadora"], ["paletiz|paletz|acumulador|mesa de carga|laminas", "Paletizadora"], ["envolvedor.*pallet", "Envolvedora de pallet"], ["envolvedor", "Envolvedora de film (Variopac)"], ["volteador", "Agrupador / empujador de filas"], ["capsul|tapas", "Capsuladora"], ["asas", "Máquina de asas"], ["codific", "Codificador"], ["externa", "Causa externa"], ["programada", "Programada"]], "TYPOS": {"trasporte": "transporte", "tranporte": "transporte", "trasnporte": "transporte", "transprote": "transporte", "transpote": "transporte", "trabda": "trabada", "trabadas": "trabada", "trabado": "trabada", "trabados": "trabada", "trambada": "trabada", "trabamientos": "trabamiento", "limpiesa": "limpieza", "limpiza": "limpieza", "limpeza": "limpieza", "esatdo": "estado", "estados": "estado", "estadp": "estado", "llenaodra": "llenadora", "llenadra": "llenadora", "lenadora": "llenadora", "llenador": "llenadora", "llenadoras": "llenadora", "calibracio": "calibracion", "calibraciones": "calibracion", "calibraciom": "calibracion", "calibrar": "calibracion", "calibrado": "calibracion", "ajustes": "ajuste", "ajsute": "ajuste", "ajusta": "ajuste", "ajustar": "ajuste", "baranda": "barandas", "desformado": "deformado", "dana": "dano", "danada": "danado", "danados": "danado", "danadas": "danado", "botellas": "botella", "envases": "envase", "paquetes": "paquete", "guias": "guia", "asas": "asa", "pinzas": "pinza", "estrellas": "estrella", "etiquetados": "etiquetadora", "etiquetado": "etiquetadora", "envolvedor": "envolvedora", "capsulador": "capsuladora", "capsulado": "capsuladora", "montacargas": "montacarga", "caidas": "caida", "caidos": "caida", "caido": "caida", "virados": "virado", "viradas": "virada", "virada": "virado", "aradas": "paradas", "parada": "paradas", "tapas": "tapa", "rollos": "rollo", "bobinas": "bobina", "cuchillas": "cuchilla", "valvulas": "valvula", "sensores": "sensor", "rodillos": "rodillo", "cadenas": "cadena", "sellados": "sellado", "pantallero": "operador", "arrancada": "arranque", "enrreda": "enreda", "trnasferencia": "transferencia", "acumelacion": "acumulacion", "aza": "asa", "trbada": "trabada", "travada": "trabada", "travado": "trabada", "travadas": "trabada", "tranportador": "transportador", "dayo": "dano", "ajuate": "ajuste", "acumulacion": "acumulacion", "flojas": "flojo", "apagan": "apaga", "apago": "apaga", "enrrede": "enreda", "enredan": "enreda", "enredo": "enreda", "enredada": "enreda", "plasticos": "plastico", "polietileno": "plastico"}, "VALID_COMP": ["Agrupador / empujador de filas", "Capsuladora", "Carrilera de tapas", "Codificador", "Envolvedora de film (Variopac)", "Envolvedora de pallet", "Estrellas de transferencia", "Etiquetadora", "Llenadora", "Logística / montacargas", "Línea completa", "Mixer / jarabes", "Máquina de asas", "Paletizadora", "Regla selladora", "Rinser / pinzas", "Sistema de frío", "Sopladora", "Termoencogible", "Transportadores", "Transporte aéreo", "Túnel térmico"]};</script>
+<script id="core-js">/* Lógica de lectura y agregación de los reportes de Atlas. Funciona igual en el navegador y en Node. */
+const Core = (() => {
+  const R = RULES;
+  const rx = {
+    comp: R.COMPONENTE.map(([r, l]) => [new RegExp(r), l]),
+    causa: R.CAUSA.map(([r, l]) => [new RegExp(r), l]),
+    equipo: R.EQUIPO_LVL1.map(([r, l]) => [new RegExp(r), l]),
+  };
+  const valid = new Set(R.VALID_COMP);
+  const first = (rules, t) => { for (const [re, l] of rules) if (re.test(t)) return l; return null; };
+  const norm = (s) => String(s).normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z0-9% ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const fix = (t) => t.split(' ').map((w) => (Object.prototype.hasOwnProperty.call(R.TYPOS, w) ? R.TYPOS[w] : w)).join(' ');
+
+  const cache = new Map();
+  function classify(note, lvl1) {
+    const key = (note || '') + '\u0001' + (lvl1 || '');
+    let c = cache.get(key);
+    if (c) return c;
+    const t = note ? fix(norm(note)) : '';
+    let comp = t ? first(rx.comp, t) : null;
+    let causa = t ? first(rx.causa, t) : null;
+    if (!comp) comp = first(rx.equipo, String(lvl1 || '').toLowerCase()) || 'Línea completa';
+    if (!valid.has(comp)) comp = 'Línea completa';
+    if (!causa || causa === 'Sin descripción útil') causa = 'Otras fallas / intervención';
+    c = { comp, causa };
+    cache.set(key, c);
+    return c;
+  }
+
+  const serialToMs = (n) => Math.round((n - 25569) * 86400) * 1000;
+  function dayOf(v) {
+    if (typeof v === 'number') return new Date(serialToMs(v)).toISOString().slice(0, 10);
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[0];
+    const d = new Date(v);
+    return isNaN(d) ? null : d.toISOString().slice(0, 10);
+  }
+  function msOf(v) {
+    if (typeof v === 'number') return serialToMs(v);
+    const d = new Date(v);
+    return isNaN(d) ? NaN : d.getTime();
+  }
+  const dnum = (f) => Date.UTC(+f.slice(0, 4), +f.slice(5, 7) - 1, +f.slice(8, 10)) / 864e5;
+  const dstr = (n) => new Date(n * 864e5).toISOString().slice(0, 10);
+  const addDays = (f, n) => dstr(dnum(f) + n);
+  const hhmm = (ms) => new Date(ms).toISOString().slice(11, 16);
+  const cleanNote = (s) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, 170);
+
+
+  /* Atlas escribe una dimensión errónea (A1:X6): se recalcula el rango real de la hoja */
+  function sheetRows(XLSX, ws) {
+    let lastKey = null;
+    for (const k in ws) if (k.charCodeAt(0) !== 33) lastKey = k;
+    if (lastKey) {
+      const last = XLSX.utils.decode_cell(lastKey);
+      const cur = ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']) : { e: { c: 0 } };
+      ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(last.r, 5), c: Math.max(cur.e.c, 30) } });
+    }
+    return XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, blankrows: false });
+  }
+
+  /* rows: arreglo de arreglos de la hoja "Data" (la primera fila con "Asset" es el encabezado) */
+  function aggregateRows(rows, loadedAt) {
+    let h = rows.findIndex((r) => r && r.indexOf && r.indexOf('Asset') >= 0 && r.indexOf('Super Reason') >= 0);
+    if (h < 0) throw new Error('No encontré las columnas de Atlas (Asset, Super Reason…)');
+    const head = rows[h];
+    const col = (n) => head.indexOf(n);
+    const C = {
+      asset: col('Asset'), ld: col('Logical Date'), st: col('Start Time'), en: col('End Time'), min: col('Minutes'),
+      sr: col('Super Reason'), l1: col('Reason Lvl1'), l2: col('Reason Lvl2'), nt: col('Notes'),
+    };
+    for (const k of Object.keys(C)) if (C[k] < 0) throw new Error('Falta la columna ' + k + ' en el reporte');
+    const per = new Map();
+    const get = (name) => {
+      let a = per.get(name);
+      if (!a) { a = { linea: name, days: {}, itemsMap: new Map(), stops: [], filas: 0 }; per.set(name, a); }
+      return a;
+    };
+    for (let i = h + 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r || r[C.asset] == null || r[C.ld] == null) continue;
+      const sr = String(r[C.sr] || '');
+      const minutes = Number(r[C.min]);
+      if (!isFinite(minutes)) continue;
+      const f = dayOf(r[C.ld]);
+      if (!f) continue;
+      const a = get(String(r[C.asset]));
+      a.filas++;
+      const isUp = sr === 'Uptime';
+      const isExt = /Externa/i.test(sr);
+      const isInt = /Paradas/i.test(sr);
+      if (!isUp && !isExt && !isInt) continue;
+      const d = a.days[f] || (a.days[f] = { up: 0, em: 0, op: 0, ext: 0 });
+      if (isUp) { d.up += minutes; continue; }
+      const t = isExt ? 'ext' : (/Electromec/i.test(sr) ? 'em' : 'op');
+      d[t] += minutes;
+      const note = r[C.nt] == null ? '' : cleanNote(r[C.nt]);
+      const cl = classify(note, r[C.l1]);
+      const key = f + '|' + cl.comp + '|' + cl.causa + '|' + t;
+      let it = a.itemsMap.get(key);
+      if (!it) { it = { f, comp: cl.comp, causa: cl.causa, t, min: 0, reg: 0, notes: new Map() }; a.itemsMap.set(key, it); }
+      it.min += minutes; it.reg++;
+      if (note) {
+        const k = note.toLowerCase();
+        const n = it.notes.get(k);
+        if (n) n.m += minutes; else it.notes.set(k, { t: note, m: minutes });
+      }
+      if (isInt) a.stops.push({ s: msOf(r[C.st]), e: msOf(r[C.en]), min: minutes, comp: cl.comp, causa: cl.causa, note, f, t });
+    }
+    const out = {};
+    for (const [name, a] of per) {
+      const items = [];
+      for (const it of a.itemsMap.values()) {
+        let top = '';
+        let best = -1;
+        for (const n of it.notes.values()) if (n.m > best) { best = n.m; top = n.t; }
+        items.push({ f: it.f, comp: it.comp, causa: it.causa, t: it.t, min: Math.round(it.min * 10) / 10, reg: it.reg, note: top });
+      }
+      // paros largos: filas internas consecutivas del mismo componente se juntan
+      a.stops.sort((x, y) => x.s - y.s);
+      const largos = [];
+      let cur = null;
+      const flush = () => {
+        if (cur && cur.min >= 30) largos.push({ f: cur.f, hora: isNaN(cur.s) ? '' : hhmm(cur.s), t: cur.t, min: Math.round(cur.min), comp: cur.comp, causa: cur.causa, note: cur.notes.slice(0, 2).join(' | ').slice(0, 200) });
+      };
+      for (const s of a.stops) {
+        if (cur && s.comp === cur.comp && s.t === cur.t && Math.abs(s.s - cur.e) <= 2000) {
+          cur.min += s.min; cur.e = s.e;
+          if (s.note && cur.notes.indexOf(s.note) < 0) cur.notes.push(s.note);
+        } else {
+          flush();
+          cur = { s: s.s, e: s.e, min: s.min, comp: s.comp, causa: s.causa, f: s.f, t: s.t, notes: s.note ? [s.note] : [] };
+        }
+      }
+      flush();
+      const dates = Object.keys(a.days).sort();
+      out[name] = {
+        v: 2, linea: name, desde: dates[0], hasta: dates[dates.length - 1], cargado: loadedAt || null,
+        filas: a.filas, days: a.days, items, largos,
+      };
+    }
+    return out;
+  }
+
+  const pick = (d, ty) => (ty.em ? d.em : 0) + (ty.op ? d.op : 0) + (ty.ext ? d.ext : 0);
+  const span = (s, e) => dnum(e) - dnum(s) + 1;
+  function prevRange(s, e) { const n = span(s, e); return { s: addDays(s, -n), e: addDays(s, -1), n }; }
+
+  function sumRange(agg, s, e, ty) {
+    let up = 0, em = 0, op = 0, ext = 0, dias = 0;
+    for (let x = dnum(s); x <= dnum(e); x++) {
+      const d = agg.days[dstr(x)];
+      if (d) { up += d.up; em += d.em; op += d.op; ext += d.ext; dias++; }
+    }
+    const sel = pick({ em, op, ext }, ty);
+    return { up: up / 60, em: em / 60, op: op / 60, ext: ext / 60, sel: sel / 60, dias, disp: up + sel > 0 ? up / (up + sel) : null };
+  }
+
+  const itemsIn = (agg, s, e, ty) => agg.items.filter((it) => ty[it.t] && it.f >= s && it.f <= e);
+  const largosIn = (agg, s, e, ty) => agg.largos.filter((x) => ty[x.t] && x.f >= s && x.f <= e);
+
+  /* componente + causa + tipo dentro del periodo y del periodo anterior (mismo largo) */
+  function compare(agg, s, e, ty) {
+    const pr = prevRange(s, e), n = pr.n;
+    const m = new Map();
+    const touch = (it) => {
+      const k = it.comp + '|' + it.causa + '|' + it.t;
+      let o = m.get(k);
+      if (!o) { o = { comp: it.comp, causa: it.causa, t: it.t, h: 0, hp: 0, dias: new Set(), reg: 0, note: '', nm: -1 }; m.set(k, o); }
+      return o;
+    };
+    for (const it of itemsIn(agg, s, e, ty)) {
+      const o = touch(it);
+      o.h += it.min / 60; o.reg += it.reg; o.dias.add(it.f);
+      if (it.note && it.min > o.nm) { o.nm = it.min; o.note = it.note; }
+    }
+    for (const it of itemsIn(agg, pr.s, pr.e, ty)) touch(it).hp += it.min / 60;
+    return [...m.values()].map((o) => ({ comp: o.comp, causa: o.causa, t: o.t, h: o.h, hp: o.hp, dias: o.dias.size, reg: o.reg, note: o.note, estado: estado(o.h, o.hp, o.dias.size, n) }))
+      .sort((a, b) => (b.h + b.hp * 0.01) - (a.h + a.hp * 0.01));
+  }
+
+  /* los umbrales en horas se escalan con el largo del periodo (base: 7 días) */
+  function estado(h, hp, dias, n) {
+    const k = Math.max(1, n / 7);
+    if (h < 0.25 * k && hp >= 1 * k) return 'Resuelto';
+    if (hp < 0.25 * k && h >= 1 * k) return 'Nuevo';
+    if (h >= hp * 1.3 && h - hp >= 0.75 * k) return 'Empeora';
+    if (h <= hp * 0.6 && hp - h >= 0.75 * k) return 'Mejora';
+    if (dias >= Math.ceil(n / 2)) return 'Persiste';
+    return 'Intermitente';
+  }
+
+  function dayDetail(agg, f, ty) {
+    const d = agg.days[f] || { up: 0, em: 0, op: 0, ext: 0 };
+    const m = new Map();
+    for (const it of agg.items) {
+      if (it.f !== f || !ty[it.t]) continue;
+      const k = it.comp + '|' + it.causa + '|' + it.t;
+      let o = m.get(k);
+      if (!o) { o = { comp: it.comp, causa: it.causa, t: it.t, min: 0, reg: 0, note: '', nm: -1 }; m.set(k, o); }
+      o.min += it.min; o.reg += it.reg;
+      if (it.note && it.min > o.nm) { o.nm = it.min; o.note = it.note; }
+    }
+    const list = [...m.values()].sort((a, b) => b.min - a.min);
+    const sel = pick(d, ty);
+    return {
+      f, up: d.up / 60, em: d.em / 60, op: d.op / 60, ext: d.ext / 60, sel: sel / 60,
+      disp: d.up + sel > 0 ? d.up / (d.up + sel) : null,
+      parcial: (d.up + d.em + d.op + d.ext) / 60 < 14 && !!agg.days[f],
+      hay: !!agg.days[f], list, largos: agg.largos.filter((x) => x.f === f && ty[x.t]).sort((a, b) => a.hora.localeCompare(b.hora)),
+    };
+  }
+
+  /* junta un reporte nuevo con lo guardado: los días que trae el reporte reemplazan a los guardados; el resto se conserva */
+  function mergeLine(old, nw) {
+    const keep = (f) => f < nw.desde || f > nw.hasta;
+    const days = {};
+    for (const f in old.days) if (keep(f)) days[f] = old.days[f];
+    Object.assign(days, nw.days);
+    const items = old.items.filter((x) => keep(x.f)).concat(nw.items);
+    const largos = old.largos.filter((x) => keep(x.f)).concat(nw.largos);
+    const dates = Object.keys(days).sort();
+    return { v: 2, linea: nw.linea, desde: dates[0], hasta: dates[dates.length - 1], cargado: nw.cargado, filas: (old.filas || 0) + nw.filas, days, items, largos };
+  }
+
+  /* columnas del gráfico y del mapa: días (hasta 45), semanas (hasta 200 días) o meses */
+  function buckets(s, e) {
+    const n = span(s, e), out = [];
+    if (n <= 45) { for (let x = dnum(s); x <= dnum(e); x++) out.push({ s: dstr(x), e: dstr(x), u: 'd' }); }
+    else if (n <= 200) {
+      for (let x = dnum(s); x <= dnum(e); x += 7) out.push({ s: dstr(x), e: dstr(Math.min(x + 6, dnum(e))), u: 'w' });
+    } else {
+      let cur = s;
+      while (cur <= e) {
+        const y = +cur.slice(0, 4), mo = +cur.slice(5, 7);
+        const last = new Date(Date.UTC(y, mo, 0)).toISOString().slice(0, 10);
+        const be = last < e ? last : e;
+        out.push({ s: cur, e: be, u: 'm' });
+        cur = addDays(be, 1);
+      }
+    }
+    return out;
+  }
+
+  function series(agg, bs, ty) {
+    return bs.map((b) => {
+      let up = 0, sel = 0, has = false;
+      for (let x = dnum(b.s); x <= dnum(b.e); x++) {
+        const d = agg.days[dstr(x)];
+        if (d) { has = true; up += d.up; sel += pick(d, ty); }
+      }
+      return { b, h: has ? sel / 60 : null, disp: has && up + sel > 0 ? up / (up + sel) : null };
+    });
+  }
+
+  function heat(agg, bs, ty, rowsMax) {
+    const idx = new Map();
+    bs.forEach((b, i) => { for (let x = dnum(b.s); x <= dnum(b.e); x++) idx.set(dstr(x), i); });
+    const m = new Map();
+    for (const it of agg.items) {
+      if (!ty[it.t] || !idx.has(it.f)) continue;
+      let o = m.get(it.comp);
+      if (!o) { o = { comp: it.comp, tot: 0, v: new Array(bs.length).fill(0) }; m.set(it.comp, o); }
+      o.v[idx.get(it.f)] += it.min / 60; o.tot += it.min / 60;
+    }
+    return { buckets: bs, rows: [...m.values()].sort((a, b) => b.tot - a.tot).slice(0, rowsMax) };
+  }
+
+  return { classify, sheetRows, aggregateRows, mergeLine, sumRange, prevRange, itemsIn, largosIn, compare, dayDetail, buckets, series, heat, estado, addDays, dnum, dstr, span };
+})();
+if (typeof module !== 'undefined') module.exports = Core;
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const nf1 = new Intl.NumberFormat('es', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const nf0 = new Intl.NumberFormat('es', { maximumFractionDigits: 0 });
+  const dShort = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const dLong = new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const D = (f) => new Date(f + 'T00:00:00Z');
+  const fH = (x) => nf1.format(x) + ' h';
+  const fP = (x) => nf1.format(x * 100) + '%';
+  const fDur = (m) => (m >= 60 ? nf1.format(m / 60) + ' h' : nf0.format(m) + ' min');
+  const el = (tag, attrs, ...kids) => {
+    const e = document.createElement(tag);
+    for (const k in attrs || {}) {
+      if (k === 'class') e.className = attrs[k]; else if (k === 'text') e.textContent = attrs[k];
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]);
+    }
+    for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    return e;
+  };
+  const NS = 'http://www.w3.org/2000/svg';
+  const sv = (tag, attrs, ...kids) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+    for (const c of kids.flat()) if (c != null) e.append(c);
+    return e;
+  };
+
+  const store = { lines: {}, savedAt: null };
+
+  /* ---------- guardado local (solo comodidad; la página funciona sin él) ---------- */
+  const idb = {
+    open: () => new Promise((res, rej) => {
+      const r = indexedDB.open('tablero-paros', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }),
+    async get(k) { const db = await this.open(); return new Promise((res, rej) => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+    async set(k, v) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+  };
+  const persist = async () => { try { await idb.set('store', JSON.parse(JSON.stringify(store))); } catch (e) { /* sin guardado */ } };
+  const restore = async () => { try { const s = await idb.get('store'); if (s && s.lines) { for (const k in s.lines) if (s.lines[k] && s.lines[k].v === 2) store.lines[k] = s.lines[k]; store.savedAt = s.savedAt; return Object.keys(store.lines).length > 0; } } catch (e) { /* vacío */ } return false; };
+
+
+  /* ---------- guardado en línea (base de datos del artefacto, privada de tu cuenta) ---------- */
+  const cloud = { db: null, saving: false };
+  const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const cloudStatus = (t, bad) => { const e = $('cloud'); e.textContent = t; e.style.color = bad ? 'var(--bad)' : ''; };
+  async function pack(obj) {
+    const s = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream('gzip'));
+    const u = new Uint8Array(await new Response(s).arrayBuffer());
+    let bin = ''; for (let i = 0; i < u.length; i += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+    return btoa(bin);
+  }
+  async function unpack(z) {
+    const bin = atob(z), u = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    const s = new Blob([u]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return JSON.parse(await new Response(s).text());
+  }
+  async function cloudSave(list) {
+    if (!cloud.db || !list.length) return;
+    cloudStatus('Guardando en línea…');
+    try {
+      for (const n of list) {
+        const z = await pack(store.lines[n]);
+        if (z.length > 240000) throw new Error('archivo muy grande');
+        await cloud.db.doc('lines/' + slug(n)).set({ name: n, cargado: store.lines[n].cargado, hasta: store.lines[n].hasta, z });
+      }
+      cloudStatus('Guardado en línea ✓');
+    } catch (e) { cloudStatus('No se pudo guardar en línea (' + (e && (e.code || e.message) || 'error') + ')', true); }
+  }
+  async function cloudStart() {
+    if (!(window.claude && window.claude.use)) return;
+    let db = null;
+    try { db = await window.claude.use('db'); } catch (e) { /* sin base */ }
+    if (!db) return;
+    cloud.db = db;
+    cloudStatus('Sincronizando…');
+    db.collection('lines').onSnapshot(async (snap) => {
+      let changed = false;
+      const remote = new Map();
+      for (const d of snap.docs) {
+        const v = d.data();
+        if (!v || !v.z) continue;
+        remote.set(v.name, v.cargado);
+        const cur = store.lines[v.name];
+        if (cur && cur.cargado >= v.cargado) continue;
+        try { const ln = await unpack(v.z); if (ln.v !== 2) continue; store.lines[v.name] = ln; changed = true; } catch (e) { /* doc ilegible */ }
+      }
+      if (changed) { await persist(); init(false); }
+      const up = names().filter((n) => !remote.has(n) || remote.get(n) < store.lines[n].cargado);
+      if (up.length && !cloud.saving) { cloud.saving = true; await cloudSave(up); cloud.saving = false; }
+      else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
+    }, () => cloudStatus('Sin conexión a la base en línea', true));
+  }
+
+  /* ---------- lectura de archivos ---------- */
+  const rng = (a, b) => dShort.format(D(a)) + ' – ' + dShort.format(D(b));
+  function lineGrid(head, rows) {
+    const g = el('div', { class: 'lt', style: '--cols:' + head.length });
+    head.forEach((h) => g.append(el('span', { class: 'lh', text: h })));
+    rows.forEach((r) => r.forEach((c, i) => g.append(el('span', { class: i === 0 ? 'ln' : (typeof c === 'object' && c ? 'warn' : 'dt'), text: c ? (typeof c === 'object' ? c.w : c) : '' }))));
+    return g;
+  }
+  const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  function parseInWorker(buf, loadedAt) {
+    return new Promise((resolve, reject) => {
+      let w;
+      try {
+        const src = "importScripts('" + XLSX_URL + "');\n" + $('rules-js').textContent + '\n' + $('core-js').textContent + '\n' +
+          "self.onmessage = (e) => { try { const wb = XLSX.read(new Uint8Array(e.data.buf), { type: 'array', sheets: 'Data' }); const ws = wb.Sheets['Data']; if (!ws) throw new Error('No encontré la hoja Data'); const rows = Core.sheetRows(XLSX, ws); self.postMessage({ ok: Core.aggregateRows(rows, e.data.at) }); } catch (err) { self.postMessage({ err: String(err && err.message || err) }); } };";
+        w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+      } catch (e) { reject(e); return; }
+      w.onmessage = (m) => { w.terminate(); m.data.err ? reject(new Error(m.data.err)) : resolve(m.data.ok); };
+      w.onerror = (e) => { w.terminate(); reject(new Error('worker')); };
+      w.postMessage({ buf: buf.slice(0), at: loadedAt });
+    });
+  }
+  function parseInPage(buf, loadedAt) {
+    return new Promise((resolve, reject) => setTimeout(() => {
+      try {
+        const wb = XLSX.read(new Uint8Array(buf), { type: 'array', sheets: 'Data' });
+        const ws = wb.Sheets['Data'];
+        if (!ws) throw new Error('No encontré la hoja Data');
+        resolve(Core.aggregateRows(Core.sheetRows(XLSX, ws), loadedAt));
+      } catch (e) { reject(e); }
+    }, 30));
+  }
+
+  let busy = false;
+  async function handleFiles(list) {
+    const files = [...list].filter((f) => /\.xlsx?$/i.test(f.name));
+    const ul = $('files');
+    if (!files.length) { ul.replaceChildren(el('li', { class: 'err', text: 'Elige archivos Excel (.xlsx) descargados de Atlas.' })); return; }
+    if (typeof XLSX === 'undefined') { ul.replaceChildren(el('li', { class: 'err', text: 'No se pudo cargar el lector de Excel. Revisa tu conexión e intenta de nuevo.' })); return; }
+    if (busy) return;
+    busy = true;
+    ul.replaceChildren();
+    let any = false;
+    const loadedAt = new Date().toISOString();
+    const loadedNames = new Set();
+    for (const f of files) {
+      const li = el('li', { text: 'Leyendo ' + f.name + '…' });
+      ul.append(li);
+      try {
+        const buf = await f.arrayBuffer();
+        let out;
+        try { out = await parseInWorker(buf, loadedAt); } catch (e) { out = await parseInPage(buf, loadedAt); }
+        const names = Object.keys(out);
+        if (!names.length) throw new Error('El archivo no trae eventos');
+        const gaps = {};
+        for (const n of names) {
+          const prev = store.lines[n];
+          if (prev && prev.v === 2) {
+            if (out[n].desde > Core.addDays(prev.hasta, 1)) gaps[n] = dShort.format(D(Core.addDays(prev.hasta, 1))) + ' a ' + dShort.format(D(Core.addDays(out[n].desde, -1)));
+            store.lines[n] = Core.mergeLine(prev, out[n]);
+          } else store.lines[n] = out[n];
+          loadedNames.add(n);
+        }
+        const anyGap = names.some((n) => gaps[n]);
+        li.replaceChildren(el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), f.name),
+          lineGrid(anyGap ? ['Línea', 'Cargado ahora', 'Total guardado', 'Aviso'] : ['Línea', 'Cargado ahora', 'Total guardado'],
+            names.map((n) => [n, rng(out[n].desde, out[n].hasta), rng(store.lines[n].desde, store.lines[n].hasta)].concat(anyGap ? [gaps[n] ? { w: 'Faltan los días ' + gaps[n] } : ''] : []))));
+        any = true;
+      } catch (e) {
+        li.className = 'err';
+        li.textContent = f.name + ': ' + (e && e.message ? e.message : 'no se pudo leer');
+      }
+    }
+    busy = false;
+    if (any) { store.savedAt = loadedAt; await persist(); init(true); cloudSave([...loadedNames]); }
+  }
+
+  /* ---------- estado y utilidades ---------- */
+  const TL = { em: 'electromecánico', op: 'operacional', ext: 'externo' };
+  const TB = { em: 'Electromecánicas', op: 'Operacionales', ext: 'Externas' };
+  const dMonth = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  const ui = { line: null, s: null, e: null, day: null, ty: { em: true, op: true, ext: false } };
+  const tyList = () => ['em', 'op', 'ext'].filter((k) => ui.ty[k]);
+  const tyText = () => { const l = tyList().map((k) => TL[k]); return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0]; };
+  const isInternal = () => ui.ty.em && ui.ty.op && !ui.ty.ext;
+  const dispLabel = () => (isInternal() ? 'Disponibilidad interna' : 'Disponibilidad (tipos elegidos)');
+  const nDays = () => Core.span(ui.s, ui.e);
+  const LPAL = ['var(--b-blue)', 'var(--b-green)', 'var(--b-purple)', 'var(--b-yellow)', 'var(--b-orange)'];
+  const lineColor = (n) => LPAL[Math.max(0, names().indexOf(n)) % LPAL.length];
+  const names = () => Object.keys(store.lines).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+  const maxDate = () => names().map((n) => store.lines[n].hasta).sort().pop();
+  const minDate = () => names().map((n) => store.lines[n].desde).sort()[0];
+  const rangeText = (s, e) => (s === e ? dShort.format(D(s)) : dShort.format(D(s)) + ' – ' + dShort.format(D(e)));
+  const bLabel = (b) => (b.u === 'd' ? dLong.format(D(b.s)) : b.u === 'w' ? 'Semana del ' + rangeText(b.s, b.e) : dMonth.format(D(b.s)));
+  const unitName = () => { const b = Core.buckets(ui.s, ui.e)[0]; return b.u === 'd' ? 'día' : b.u === 'w' ? 'semana' : 'mes'; };
+
+  function defDay(f) {
+    const a = store.lines[ui.line];
+    const d = a && Core.dayDetail(a, f, ui.ty);
+    return d && d.parcial && f > a.desde ? Core.addDays(f, -1) : f;
+  }
+
+  function init(fromLoad) {
+    const ns = names();
+    if (!ns.length) { $('app').hidden = true; return; }
+    $('drop').classList.add('compact');
+    $('drop-intro').hidden = true;
+    document.querySelector('.priv').hidden = true;
+    if (!ui.line || !store.lines[ui.line]) ui.line = ns[0];
+    const mx = maxDate(), mn = minDate();
+    if (fromLoad || !ui.e) { ui.e = mx; ui.s = Core.addDays(mx, -6); }
+    if (ui.e > mx) ui.e = mx;
+    if (ui.s < mn) ui.s = mn;
+    if (ui.s > ui.e) ui.s = ui.e;
+    if (fromLoad || !ui.day) ui.day = defDay(ui.e);
+    if (!$('files').children.length) {
+      $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
+    }
+    $('app').hidden = false;
+    renderAll();
+  }
+
+  function setPeriod(s, e) {
+    const mx = maxDate(), mn = minDate();
+    if (e > mx) e = mx;
+    if (s < mn) s = mn;
+    if (s > e) s = e;
+    ui.s = s; ui.e = e;
+    if (ui.day < s || ui.day > e) ui.day = defDay(e);
+    renderAll();
+  }
+
+  function renderAll() {
+    renderControls(); renderNotice(); renderKpis(); renderBars(); renderDay(); renderHeat(); renderCompare();
+  }
+
+  function renderControls() {
+    const sl = $('seg-line'); sl.replaceChildren();
+    for (const n of names()) sl.append(el('button', { type: 'button', 'aria-pressed': String(n === ui.line), onclick: () => { ui.line = n; renderAll(); } }, el('i', { class: 'dot', style: '--lc:' + lineColor(n) }), n));
+    const mx = maxDate(), mn = minDate();
+    const a = $('d-from'), b = $('d-to');
+    a.min = b.min = mn; a.max = b.max = mx;
+    if (document.activeElement !== a) a.value = ui.s;
+    if (document.activeElement !== b) b.value = ui.e;
+    const sp = $('seg-pre'); sp.replaceChildren();
+    const first = mx.slice(0, 8) + '01';
+    const pre = [['7 días', Core.addDays(mx, -6)], ['30 días', Core.addDays(mx, -29)], ['Este mes', first], ['Todo', mn]];
+    for (const [lab, from] of pre) {
+      const f = from < mn ? mn : from;
+      sp.append(el('button', { type: 'button', 'aria-pressed': String(ui.s === f && ui.e === mx), text: lab, onclick: () => setPeriod(f, mx) }));
+    }
+    const st = $('seg-type'); st.replaceChildren();
+    for (const k of ['em', 'op', 'ext']) {
+      st.append(el('button', { type: 'button', 'aria-pressed': String(!!ui.ty[k]), text: TB[k], onclick: () => {
+        if (ui.ty[k] && tyList().length === 1) return;
+        ui.ty[k] = !ui.ty[k]; ui.day = defDay(ui.day > ui.e ? ui.e : ui.day); renderAll();
+      } }));
+    }
+  }
+  const onDate = () => {
+    const f = $('d-from'), t = $('d-to');
+    if (!f.value || !t.value || !f.validity.valid || !t.validity.valid) return;
+    let s = f.value, e = t.value;
+    if (s > e) { if (document.activeElement === f) e = s; else s = e; }
+    setPeriod(s, e);
+  };
+  $('d-from').addEventListener('change', onDate);
+  $('d-to').addEventListener('change', onDate);
+  ['d-from', 'd-to'].forEach((id) => $(id).addEventListener('blur', () => { $('d-from').value = ui.s; $('d-to').value = ui.e; }));
+
+  function renderNotice() {
+    const n = $('notice');
+    const parts = [];
+    for (const name of names()) {
+      const a = store.lines[name];
+      if (a.hasta >= ui.s && a.hasta <= ui.e && Core.dayDetail(a, a.hasta, ui.ty).parcial) parts.push(name);
+    }
+    if (parts.length) { n.hidden = false; n.textContent = 'El último día cargado tiene datos parciales en ' + parts.join(', ') + ' (el turno sigue en curso o falta el reporte completo); cuenta dentro del periodo.'; }
+    else n.hidden = true;
+  }
+
+  /* ---------- tarjetas por línea ---------- */
+  function deltaEl(diff, goodWhenUp, unit, digits) {
+    if (diff == null || !isFinite(diff)) return el('span', { class: 'delta flat', text: 'sin comparación' });
+    const abs = Math.abs(diff);
+    if (abs < 0.05) return el('span', { class: 'delta flat', text: '= sin cambio' });
+    const up = diff > 0;
+    return el('span', { class: 'delta ' + (up === goodWhenUp ? 'good' : 'bad'), text: (up ? '▲ ' : '▼ ') + new Intl.NumberFormat('es', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(abs) + unit });
+  }
+  function renderKpis() {
+    const host = $('kpis'); host.replaceChildren();
+    const pr = Core.prevRange(ui.s, ui.e);
+    const n = nDays();
+    for (const name of names()) {
+      const a = store.lines[name];
+      const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
+      const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length, largosP = Core.largosIn(a, pr.s, pr.e, ui.ty).length;
+      const noPrev = pr.e < a.desde;
+      host.append(el('button', { type: 'button', class: 'kpi', style: '--lc:' + lineColor(name), 'aria-pressed': String(name === ui.line), onclick: () => { ui.line = name; renderAll(); } },
+        el('div', { class: 'nm' }, el('h3', { text: name }), el('span', { class: 'muted small', text: rangeText(ui.s, ui.e) })),
+        el('div', {}, el('div', { class: 'muted small', text: dispLabel() }), el('div', { class: 'big', text: w.disp == null ? '—' : fP(w.disp) }),
+          el('div', { class: 'small' }, noPrev ? el('span', { class: 'muted', text: 'sin periodo previo para comparar' }) : [deltaEl(w.disp != null && p.disp != null ? (w.disp - p.disp) * 100 : null, true, ' pts', 1), el('span', { class: 'muted', text: ' vs ' + n + (n === 1 ? ' día' : ' días') + ' previos' })])),
+        el('div', { class: 'row' }, el('span', { text: 'Paro' }), el('span', { class: 'num' }, fH(w.sel), ' ', noPrev ? null : deltaEl(w.sel - p.sel, false, ' h', 1))),
+        el('div', { class: 'row' }, el('span', { text: 'Paros de más de 30 min' }), el('span', { class: 'num' }, nf0.format(largos), ' ', noPrev ? null : deltaEl(largos - largosP, false, '', 0)))));
+    }
+  }
+
+  /* ---------- tooltip ---------- */
+  const tip = $('tip');
+  const root = document.querySelector('.pz');
+  function showTip(ev, lines) {
+    tip.replaceChildren(...lines.map((l, i) => el('div', { class: i ? '' : 'muted' }, l)));
+    tip.hidden = false;
+    const r = root.getBoundingClientRect();
+    let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+    const tw = tip.offsetWidth;
+    if (x + tw > r.width) x = Math.max(0, ev.clientX - r.left - tw - 14);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  const hideTip = () => { tip.hidden = true; };
+
+  /* ---------- barras ---------- */
+  function renderBars() {
+    const host = $('bars'); host.replaceChildren();
+    const n = nDays();
+    const ds = n < 14 ? Core.addDays(ui.e, -13) : ui.s;
+    const bs = Core.buckets(ds, ui.e);
+    const u = bs[0].u;
+    $('bars-title').textContent = 'Horas de paro por ' + (u === 'd' ? 'día' : u === 'w' ? 'semana' : 'mes');
+    $('bars-sub').textContent = 'Paro ' + tyText() + ', ' + rangeText(ui.s, ui.e) + (n < 14 ? ' (se muestran 14 días para dar contexto)' : '') + '.' + (u === 'd' ? ' Toca un día para ver su detalle.' : ' Toca una barra para ver el primer día de ese tramo.');
+    $('leg-in').textContent = 'Dentro del periodo';
+    $('leg-out').hidden = n >= 14;
+    $('leg-avg').hidden = u !== 'd';
+    let ymax = 2;
+    const sets = names().map((nm) => ({ n: nm, a: store.lines[nm], d: Core.series(store.lines[nm], bs, ui.ty) }));
+    for (const s of sets) for (const d of s.d) if (d.h != null && d.h > ymax) ymax = d.h;
+    ymax = Math.ceil(ymax / 2) * 2;
+    for (const s of sets) {
+      const box = el('div', {});
+      const tot = Core.sumRange(s.a, ui.s, ui.e, ui.ty);
+      box.append(el('h3', {}, el('span', {}, el('i', { class: 'dot', style: '--lc:' + lineColor(s.n) }), s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
+      const wrap = el('div', {});
+      box.append(wrap); host.append(box);
+      drawBars(wrap, s, ymax, bs);
+    }
+  }
+  function drawBars(wrap, s, ymax, bs) {
+    const N = bs.length, daily = bs[0].u === 'd';
+    const W = 400, H = 150, ml = 30, mr = 4, mt = 8, mb = 20;
+    const iw = W - ml - mr, ih = H - mt - mb, step = iw / N, bw = Math.max(1.2, step - (step > 6 ? 1.6 : 0.6));
+    const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Horas de paro de ' + s.n });
+    for (const t of [0, ymax / 2, ymax]) {
+      const y = mt + ih * (1 - t / ymax);
+      svg.append(sv('line', { x1: ml, x2: W - mr, y1: y, y2: y, stroke: 'var(--line)', 'stroke-width': 1 }));
+      const lab = sv('text', { x: ml - 5, y: y + 3.5, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 10, 'font-family': 'var(--f-mono)' });
+      lab.textContent = nf0.format(t); svg.append(lab);
+    }
+    const selIdx = daily && s.n === ui.line ? bs.findIndex((b) => b.s === ui.day) : -1;
+    if (selIdx >= 0) svg.append(sv('rect', { x: ml + selIdx * step, y: mt, width: step, height: ih, fill: 'var(--sel)' }));
+    s.d.forEach((d, i) => {
+      if (d.h == null) return;
+      const h = Math.max(1, ih * d.h / ymax);
+      svg.append(sv('rect', { x: ml + i * step + (step - bw) / 2, y: mt + ih - h, width: bw, height: h, rx: Math.min(1.5, bw / 2), fill: d.b.e >= ui.s ? 'var(--accent)' : 'var(--bar-mute)' }));
+    });
+    if (daily) {
+      const pts = [];
+      s.d.forEach((d, i) => {
+        if (i < 6) return;
+        const vals = s.d.slice(i - 6, i + 1).map((x) => x.h).filter((x) => x != null);
+        if (vals.length < 4) return;
+        pts.push((ml + i * step + step / 2).toFixed(1) + ',' + (mt + ih * (1 - vals.reduce((p, c) => p + c, 0) / vals.length / ymax)).toFixed(1));
+      });
+      if (pts.length > 1) svg.append(sv('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    }
+    const every = Math.max(1, Math.ceil(N / 6));
+    for (let i = 0; i < N; i += every) {
+      const t = sv('text', { x: ml + i * step + step / 2, y: H - 5, 'text-anchor': i === 0 ? 'start' : 'middle', fill: 'var(--muted)', 'font-size': 10, 'font-family': 'var(--f-mono)' });
+      t.textContent = bs[i].u === 'm' ? new Intl.DateTimeFormat('es', { month: 'short', timeZone: 'UTC' }).format(D(bs[i].s)) : dShort.format(D(bs[i].s));
+      if (i === 0) t.setAttribute('x', ml); svg.append(t);
+    }
+    const hit = sv('rect', { x: ml, y: 0, width: iw, height: H - mb, fill: 'transparent', style: 'cursor:pointer' });
+    const idxOf = (ev) => { const r = svg.getBoundingClientRect(); const x = (ev.clientX - r.left) * (W / r.width) - ml; return Math.min(N - 1, Math.max(0, Math.floor(x / step))); };
+    hit.addEventListener('pointermove', (ev) => {
+      const d = s.d[idxOf(ev)];
+      showTip(ev, [bLabel(d.b), d.h == null ? 'Sin datos' : el('span', {}, el('b', { text: fH(d.h) }), ' de paro · disp. ' + (d.disp == null ? '—' : fP(d.disp)))]);
+    });
+    hit.addEventListener('pointerleave', hideTip);
+    hit.addEventListener('click', (ev) => { const d = s.d[idxOf(ev)]; ui.day = d.b.s; ui.line = s.n; hideTip(); renderAll(); });
+    svg.append(hit);
+    wrap.replaceChildren(svg);
+  }
+
+  /* ---------- detalle del día ---------- */
+  function renderDay() {
+    const a = store.lines[ui.line];
+    if (ui.day < a.desde) ui.day = a.desde;
+    if (ui.day > a.hasta) ui.day = a.hasta;
+    $('day-line').replaceChildren(el('i', { class: 'dot', style: '--lc:' + lineColor(ui.line) }), ui.line);
+    $('day-when').textContent = dLong.format(D(ui.day));
+    $('day-prev').disabled = ui.day <= a.desde;
+    $('day-next').disabled = ui.day >= a.hasta;
+    const d = Core.dayDetail(a, ui.day, ui.ty);
+    const body = $('day-body'); body.replaceChildren();
+    if (!d.hay) { body.append(el('div', { class: 'empty', text: 'Atlas no trae datos de este día para ' + ui.line + '.' })); return; }
+    const st = (lab, val) => el('div', { class: 'stat' }, el('span', { text: lab }), el('b', { text: val }));
+    body.append(el('div', { class: 'stats' },
+      st(dispLabel(), d.disp == null ? '—' : fP(d.disp)), st('Paro (tipos elegidos)', fH(d.sel)),
+      st('Electromecánico', fH(d.em)), st('Operacional', fH(d.op)), st('Externo', fH(d.ext)),
+      st('Paros de más de 30 min', nf0.format(d.largos.length))));
+    const multi = tyList().length > 1;
+    const left = el('div', {}, el('h3', { text: 'Causas del día' }));
+    const hb = el('div', { class: 'hb' });
+    const top = d.list.slice(0, 8);
+    const mx = Math.max(1, ...top.map((x) => x.min));
+    for (const x of top) {
+      hb.append(el('div', { class: 'it' },
+        el('div', { class: 'lab' }, el('span', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('span', { class: 'num', text: fDur(x.min) + ' · ' + nf0.format(x.reg) + '×' })),
+        el('div', { class: 'track' }, el('div', { class: 'fill' + (x.t === 'ext' ? ' ext' : ''), style: 'width:' + (100 * x.min / mx).toFixed(1) + '%' })),
+        x.note ? el('div', { class: 'nt', text: x.note }) : null));
+    }
+    if (!top.length) hb.append(el('div', { class: 'empty', text: 'Sin paros de este tipo.' }));
+    left.append(hb);
+    const right = el('div', {}, el('h3', { text: 'Paros de 30 min o más' }));
+    const lg = el('div', { class: 'long' });
+    for (const x of d.largos) lg.append(el('div', { class: 'l' }, el('span', { class: 'num muted', text: x.hora }), el('span', { class: 'num', text: fDur(x.min) }), el('span', { text: x.comp + ' · ' + x.causa }), el('div', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
+    if (!d.largos.length) lg.append(el('div', { class: 'empty', text: 'No hubo paros de 30 min o más este día.' }));
+    right.append(lg);
+    body.append(el('div', { class: 'two' }, left, right));
+  }
+  const stepDay = (k) => { const a = store.lines[ui.line]; const f = Core.addDays(ui.day, k); if (f >= a.desde && f <= a.hasta) { ui.day = f; renderAll(); } };
+  $('day-prev').addEventListener('click', () => stepDay(-1));
+  $('day-next').addEventListener('click', () => stepDay(1));
+
+  /* ---------- mapa de calor ---------- */
+  function renderHeat() {
+    const a = store.lines[ui.line];
+    const bs = Core.buckets(ui.s, ui.e);
+    const u = bs[0].u;
+    $('heat-title').textContent = 'Qué se repite: componente por ' + (u === 'd' ? 'día' : u === 'w' ? 'semana' : 'mes');
+    $('heat-sub').textContent = ui.line + ' · horas de paro ' + tyText() + ', ' + rangeText(ui.s, ui.e) + '. Más oscuro, más horas.';
+    const hm = Core.heat(a, bs, ui.ty, 10);
+    const n = bs.length;
+    const host = $('heat'); host.replaceChildren();
+    host.style.gridTemplateColumns = `minmax(8.5rem, 13rem) repeat(${n}, minmax(1.7rem, 1fr)) 3.6rem`;
+    host.append(el('div', {}));
+    const clab = (b) => (b.u === 'm' ? new Intl.DateTimeFormat('es', { month: 'short', timeZone: 'UTC' }).format(D(b.s)) : String(+b.s.slice(8)) + ' ' + dShort.format(D(b.s)).replace(/^\d+\s*/, '').slice(0, 3));
+    bs.forEach((b) => host.append(el('div', { class: 'cl' + (u === 'd' && b.s === ui.day ? ' sel' : ''), text: clab(b) })));
+    host.append(el('div', { class: 'cl', text: 'total' }));
+    if (!hm.rows.length) { host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
+    let mx = 0.5;
+    for (const r of hm.rows) for (const v of r.v) if (v > mx) mx = v;
+    for (const r of hm.rows) {
+      host.append(el('div', { class: 'rl', text: r.comp }));
+      r.v.forEach((v, i) => {
+        const b = bs[i];
+        const t = v > 0 ? 0.1 + 0.9 * Math.pow(v / mx, 0.75) : 0;
+        const c = el('button', { type: 'button', class: 'c' + (u === 'd' && b.s === ui.day ? ' sel' : ''), 'aria-label': r.comp + ', ' + bLabel(b) + ': ' + fH(v) });
+        if (v > 0) { c.style.background = 'color-mix(in srgb, var(--accent) ' + Math.round(t * 100) + '%, var(--cell0))'; c.style.color = t > 0.55 ? 'var(--on-accent)' : 'var(--ink)'; if (v >= 0.1) c.textContent = v >= 10 ? nf0.format(v) : nf1.format(v); }
+        c.addEventListener('pointermove', (ev) => showTip(ev, [bLabel(b), el('span', {}, r.comp + ': ', el('b', { text: fH(v) }))]));
+        c.addEventListener('pointerleave', hideTip);
+        c.addEventListener('click', () => { ui.day = b.s; hideTip(); renderAll(); });
+        host.append(c);
+      });
+      host.append(el('div', { class: 'tot', text: fH(r.tot) }));
+    }
+  }
+
+  /* ---------- en qué enfocarse ---------- */
+  const BADGE = { Empeora: 'b-bad', Nuevo: 'b-bad', Persiste: 'b-warn', Intermitente: 'b-flat', Mejora: 'b-ok', Resuelto: 'b-ok' };
+  function renderCompare() {
+    const a = store.lines[ui.line];
+    const pr = Core.prevRange(ui.s, ui.e), n = nDays();
+    $('cmp-sub').textContent = ui.line + ': ' + rangeText(ui.s, ui.e) + ' frente a ' + rangeText(pr.s, pr.e) + ' (' + n + (n === 1 ? ' día' : ' días') + ' cada uno). Paro ' + tyText() + '.';
+    const multi = tyList().length > 1;
+    const rows = Core.compare(a, ui.s, ui.e, ui.ty).filter((x) => x.h + x.hp >= 0.5).slice(0, 12);
+    const t = $('cmp'); t.replaceChildren();
+    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Componente · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n', text: 'Previo' }), el('th', { class: 'n', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
+    const tb = el('tbody', {});
+    for (const x of rows) tb.append(el('tr', {},
+      el('td', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n', text: fH(x.hp) }),
+      el('td', { class: 'n', text: x.dias + '/' + n }), el('td', {}, el('span', { class: 'badge ' + BADGE[x.estado], text: x.estado })),
+      el('td', { class: 'nota hide-s', text: x.note || '—' })));
+    if (!rows.length) tb.append(el('tr', {}, el('td', { colspan: 6, class: 'empty', text: 'Sin paros relevantes en este periodo.' })));
+    t.append(tb);
+  }
+
+  /* ---------- arranque ---------- */
+  $('btn-load').addEventListener('click', () => $('file').click());
+  $('file').addEventListener('change', (e) => { handleFiles(e.target.files); e.target.value = ''; });
+  const drop = $('drop');
+  drop.addEventListener('click', (e) => { if (!drop.classList.contains('compact') && e.target.tagName !== 'A') $('file').click(); });
+  ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => e.preventDefault());
+  let rz;
+  window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (!$('app').hidden) renderBars(); }, 150); });
+
+  restore().then((ok) => { if (ok) init(true); }).then(cloudStart);
+})();
+</script>
+</body></html>

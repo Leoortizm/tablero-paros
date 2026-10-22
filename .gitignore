@@ -1,0 +1,7 @@
+# Los reportes de Atlas y sus exportaciones son datos de la empresa: nunca al repositorio
+*.xlsx
+*.xls
+*.csv
+*.xlsm
+node_modules/
+.DS_Store

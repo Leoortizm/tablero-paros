@@ -17,7 +17,7 @@ Todo se procesa en el navegador: los Excel no se suben a ningún servidor.
 |---|---|
 | `src/template.html` | Interfaz (HTML, CSS y script de pantalla) |
 | `src/core.js` | Lectura del reporte, clasificación y cálculos (funciona en navegador y en Node) |
-| `src/rules.json` | Reglas de texto que estandarizan los comentarios de los paros |
+| `src/rules.json` | Reglas de texto: equipos de Atlas (`Reason Lvl1`) y causas a partir de los comentarios |
 | `build.py` | Junta lo anterior en `dist/` |
 | `dist/tablero.html` | Fragmento HTML listo para publicar |
 | `dist/index.html` | Página completa, se abre directo en el navegador |
@@ -36,6 +36,11 @@ Ver [docs/FIREBASE.md](docs/FIREBASE.md): página pública de solo lectura y car
 
 ## Formato esperado del reporte
 Hoja `Data` con el encabezado en la fila 3 y las columnas `Asset`, `Logical Date`, `Start Time`, `End Time`, `Minutes`, `Super Reason`, `Reason Lvl1`, `Reason Lvl2` y `Notes`. Un archivo puede traer una o varias líneas (se agrupan por `Asset`). Atlas escribe una dimensión de hoja errónea (`A1:X6`); `core.js` recalcula el rango real.
+
+## Cómo se clasifica un paro
+- **Equipo:** lo define Atlas con `Reason Lvl1` (por ejemplo, Etiquetadora, Termoencogible, Transp. Llena-Etique). Los transportadores se agrupan en uno solo.
+- **Causa:** sale del comentario (`Notes`) con las reglas de `src/rules.json`.
+- Si Atlas no trae un equipo (causa externa, programada o vacío), el comentario también decide el equipo; si no alcanza, queda como "Línea completa".
 
 ## Definiciones
 - Paro interno = Paradas Electromecánicas + Paradas Operacionales.

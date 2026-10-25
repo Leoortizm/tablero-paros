@@ -18,10 +18,12 @@ const Core = (() => {
     let c = cache.get(key);
     if (c) return c;
     const t = note ? fix(norm(note)) : '';
-    let comp = t ? first(rx.comp, t) : null;
+    /* El equipo lo define Atlas (Reason Lvl1). El comentario solo decide el equipo cuando Atlas no da uno
+       (causa externa, programada, vacío) y siempre decide la causa. */
+    const eq = lvl1 ? first(rx.equipo, String(lvl1).toLowerCase()) : null;
+    let comp = eq && valid.has(eq) ? eq : (t ? first(rx.comp, t) : null);
     let causa = t ? first(rx.causa, t) : null;
-    if (!comp) comp = first(rx.equipo, String(lvl1 || '').toLowerCase()) || 'Línea completa';
-    if (!valid.has(comp)) comp = 'Línea completa';
+    if (!comp || !valid.has(comp)) comp = 'Línea completa';
     if (!causa || causa === 'Sin descripción útil') causa = 'Otras fallas / intervención';
     c = { comp, causa };
     cache.set(key, c);

@@ -32,15 +32,16 @@ const Core = (() => {
 
   const serialToMs = (n) => Math.round((n - 25569) * 86400) * 1000;
   function dayOf(v) {
-    if (typeof v === 'number') return new Date(serialToMs(v)).toISOString().slice(0, 10);
-    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') { const d = new Date(serialToMs(v)); return isNaN(d) ? null : d.toISOString().slice(0, 10); }
+    if (v instanceof Date) return isNaN(v) ? null : v.toISOString().slice(0, 10);
     const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (m) return m[0];
     const d = new Date(v);
     return isNaN(d) ? null : d.toISOString().slice(0, 10);
   }
   function msOf(v) {
-    if (typeof v === 'number') return serialToMs(v);
+    if (typeof v === 'number') { const t = serialToMs(v); return isNaN(new Date(t)) ? NaN : t; }
     const d = new Date(v);
     return isNaN(d) ? NaN : d.getTime();
   }

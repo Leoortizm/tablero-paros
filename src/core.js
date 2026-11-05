@@ -139,6 +139,7 @@ const Core = (() => {
       }
       flush();
       const dates = Object.keys(a.days).sort();
+      if (!dates.length) continue; /* línea sin días con datos (p. ej. solo eventos sin producción) */
       out[name] = {
         v: 2, linea: name, desde: dates[0], hasta: dates[dates.length - 1], cargado: loadedAt || null,
         filas: a.filas, days: a.days, items, largos,

@@ -75,6 +75,7 @@ const Core = (() => {
       sr: col('Super Reason'), l1: col('Reason Lvl1'), l2: col('Reason Lvl2'), nt: col('Notes'),
     };
     for (const k of Object.keys(C)) if (C[k] < 0) throw new Error('Falta la columna ' + k + ' en el reporte');
+    const LINEAS = /^(L2 Krones|Zegla 30|Zegla 40)$/i;
     const per = new Map();
     const get = (name) => {
       let a = per.get(name);
@@ -89,7 +90,9 @@ const Core = (() => {
       if (!isFinite(minutes)) continue;
       const f = dayOf(r[C.ld]);
       if (!f) continue;
-      const a = get(String(r[C.asset]));
+      const asset = String(r[C.asset]).trim();
+      if (!LINEAS.test(asset)) continue; /* solo las líneas de interés */
+      const a = get(asset);
       a.filas++;
       const isUp = sr === 'Uptime';
       const isExt = /Externa/i.test(sr);

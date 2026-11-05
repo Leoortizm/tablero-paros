@@ -733,7 +733,8 @@ if (typeof module !== 'undefined') module.exports = Core;
   const nDays = () => Core.span(ui.s, ui.e);
   const LPAL = ['var(--b-blue)', 'var(--b-green)', 'var(--b-purple)', 'var(--b-yellow)', 'var(--b-orange)'];
   const lineColor = (n) => LPAL[Math.max(0, names().indexOf(n)) % LPAL.length];
-  const names = () => Object.keys(store.lines).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
+  const KEEP = /^(L2 Krones|Zegla 30|Zegla 40)$/i; /* solo las líneas de interés */
+  const names = () => Object.keys(store.lines).filter((n) => KEEP.test(n)).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
   const maxDate = () => names().map((n) => store.lines[n].hasta).sort().pop();
   const minDate = () => names().map((n) => store.lines[n].desde).sort()[0];
   const rangeText = (s, e) => (s === e ? dShort.format(D(s)) : dShort.format(D(s)) + ' – ' + dShort.format(D(e)));

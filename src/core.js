@@ -12,6 +12,17 @@ const Core = (() => {
     .replace(/[^a-z0-9% ]/g, ' ').replace(/\s+/g, ' ').trim();
   const fix = (t) => t.split(' ').map((w) => (Object.prototype.hasOwnProperty.call(R.TYPOS, w) ? R.TYPOS[w] : w)).join(' ');
 
+  /* Texto legible: corrige faltas y tildes frecuentes del comentario y del nombre de equipo de Atlas */
+  const NF = R.NOTE_FIX || {};
+  const pretty = (s) => {
+    let t = String(s || '').replace(/[A-Za-zÁÉÍÓÚÑáéíóúñ]+/g, (w) => { const k = w.toLowerCase(); return Object.prototype.hasOwnProperty.call(NF, k) ? NF[k] : w; })
+      .replace(/\s+/g, ' ').replace(/\s+([,.;)])/g, '$1').replace(/\(\s+/g, '(').trim();
+    if (!t) return '';
+    t = t.charAt(0).toUpperCase() + t.slice(1);
+    return /[.!?]$/.test(t) ? t : t + '.';
+  };
+  const prettyEq = (s) => { const t = String(s).replace(/\s+/g, ' ').trim(); return t.replace(/[A-Za-zÁÉÍÓÚÑáéíóúñ]+/g, (w) => { const k = w.toLowerCase(); return Object.prototype.hasOwnProperty.call(NF, k) ? (w[0] === w[0].toUpperCase() ? NF[k].charAt(0).toUpperCase() + NF[k].slice(1) : NF[k]) : w; }); };
+
   const cache = new Map();
   function classify(note, lvl1) {
     const key = (note || '') + '\u0001' + (lvl1 || '');
@@ -20,10 +31,10 @@ const Core = (() => {
     const t = note ? fix(norm(note)) : '';
     /* El equipo lo define Atlas (Reason Lvl1). El comentario solo decide el equipo cuando Atlas no da uno
        (causa externa, programada, vacío) y siempre decide la causa. */
-    const eq = lvl1 ? first(rx.equipo, String(lvl1).toLowerCase()) : null;
-    let comp = eq && valid.has(eq) ? eq : (t ? first(rx.comp, t) : null);
+    const eq = lvl1 && !/^(causa externa|programada)/i.test(String(lvl1).trim()) ? prettyEq(lvl1) : null;
+    let comp = eq || (t ? first(rx.comp, t) : null);
     let causa = t ? first(rx.causa, t) : null;
-    if (!comp || !valid.has(comp)) comp = 'Línea completa';
+    if (!comp) comp = 'Línea completa';
     if (!causa || causa === 'Sin descripción útil') causa = 'Otras fallas / intervención';
     c = { comp, causa };
     cache.set(key, c);
@@ -122,14 +133,14 @@ const Core = (() => {
         let top = '';
         let best = -1;
         for (const n of it.notes.values()) if (n.m > best) { best = n.m; top = n.t; }
-        items.push({ f: it.f, comp: it.comp, causa: it.causa, t: it.t, min: Math.round(it.min * 10) / 10, reg: it.reg, note: top });
+        items.push({ f: it.f, comp: it.comp, causa: it.causa, t: it.t, min: Math.round(it.min * 10) / 10, reg: it.reg, note: pretty(top) });
       }
       // paros largos: filas internas consecutivas del mismo componente se juntan
       a.stops.sort((x, y) => x.s - y.s);
       const largos = [];
       let cur = null;
       const flush = () => {
-        if (cur && cur.min >= 30) largos.push({ f: cur.f, hora: isNaN(cur.s) ? '' : hhmm(cur.s), t: cur.t, min: Math.round(cur.min), comp: cur.comp, causa: cur.causa, note: cur.notes.slice(0, 2).join(' | ').slice(0, 200) });
+        if (cur && cur.min >= 30) largos.push({ f: cur.f, hora: isNaN(cur.s) ? '' : hhmm(cur.s), t: cur.t, min: Math.round(cur.min), comp: cur.comp, causa: cur.causa, note: cur.notes.slice(0, 2).map(pretty).join(' | ').slice(0, 200) });
       };
       for (const s of a.stops) {
         if (cur && s.comp === cur.comp && s.t === cur.t && Math.abs(s.s - cur.e) <= 2000) {

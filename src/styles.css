@@ -1,20 +1,22 @@
-  /* Estilo: libro de registro sin color en el marco. El único tono (azul) va sobre el dato principal: las horas de paro.
-     Verde, rojo y ámbar solo dicen bueno, malo o pendiente. Sin sombras, sin degradados, cifras tabulares. */
+  /* Estilo: marco neutro y plano, con la paleta de cinco colores de la marca puesta donde significa algo:
+     naranja = horas de paro (el dato principal); azul, verde y morado = identidad de cada línea; amarillo = avisos.
+     Sin sombras ni degradados, cifras tabulares. */
   :root {
+    --b-purple: #7a4fa3; --b-orange: #f47b20; --b-green: #78b543; --b-blue: #2ba3dd; --b-yellow: #ffc20e;
     --bg: #f2f4f7; --panel: #ffffff; --raised: #e8ebef; --ink: #0a0a0a; --muted: #5a6068;
     --line: #e2e5e9; --rule: #eef0f3; --control: #cdd2d8;
-    --accent: #1d5fbf; --on-accent: #ffffff; --bar-mute: #b9bfc7; --sel: #e8ebef; --cell0: #f2f4f7;
-    --ok: #247b50; --bad: #c4242a; --warn: #92400e; --focus: #1d5fbf;
+    --accent: #ee7214; --on-accent: #2a1200; --bar-mute: #b9bfc7; --sel: #e8ebef; --cell0: #f2f4f7;
+    --ok: #247b50; --bad: #c4242a; --warn: #92400e; --focus: #1b7fb5;
     --p-ok-bg: #dcfae5; --p-ok-ink: #04250e; --p-bad-bg: #ffedea; --p-bad-ink: #831c1e;
-    --p-warn-bg: #fff6d6; --p-warn-ink: #7a3a06; --p-flat-bg: #eceef1; --p-flat-ink: #3d4249;
+    --p-warn-bg: #fff3cc; --p-warn-ink: #7a3a06; --p-flat-bg: #eceef1; --p-flat-ink: #3d4249;
     --font: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #000000; --panel: #111111; --raised: #222222; --ink: #ffffff; --muted: #b4b4b4;
       --line: #262626; --rule: #1c1c1c; --control: #444444;
-      --accent: #6ea8ff; --on-accent: #001430; --bar-mute: #4d4d4d; --sel: #222222; --cell0: #1a1a1a;
-      --ok: #3fc07a; --bad: #e5566f; --warn: #e3b341; --focus: #6ea8ff;
+      --accent: #f47b20; --on-accent: #1a0d03; --bar-mute: #4d4d4d; --sel: #222222; --cell0: #1a1a1a;
+      --ok: #3fc07a; --bad: #e5566f; --warn: #e3b341; --focus: #6cc4f0;
       --p-ok-bg: #172a1d; --p-ok-ink: #3fc07a; --p-bad-bg: #2c1a20; --p-bad-ink: #f08a9c;
       --p-warn-bg: #2a2210; --p-warn-ink: #e3b341; --p-flat-bg: #222222; --p-flat-ink: #b4b4b4; color-scheme: dark;
     }
@@ -22,17 +24,20 @@
   :root[data-theme="dark"] {
     --bg: #000000; --panel: #111111; --raised: #222222; --ink: #ffffff; --muted: #b4b4b4;
     --line: #262626; --rule: #1c1c1c; --control: #444444;
-    --accent: #6ea8ff; --on-accent: #001430; --bar-mute: #4d4d4d; --sel: #222222; --cell0: #1a1a1a;
-    --ok: #3fc07a; --bad: #e5566f; --warn: #e3b341; --focus: #6ea8ff;
+    --accent: #f47b20; --on-accent: #1a0d03; --bar-mute: #4d4d4d; --sel: #222222; --cell0: #1a1a1a;
+    --ok: #3fc07a; --bad: #e5566f; --warn: #e3b341; --focus: #6cc4f0;
     --p-ok-bg: #172a1d; --p-ok-ink: #3fc07a; --p-bad-bg: #2c1a20; --p-bad-ink: #f08a9c;
     --p-warn-bg: #2a2210; --p-warn-ink: #e3b341; --p-flat-bg: #222222; --p-flat-ink: #b4b4b4; color-scheme: dark;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/20px var(--font);
-    padding-block: 0 48px;
+    margin: 0; color: var(--ink); font: 400 14px/20px var(--font);
+    padding-block: 4px 48px;
     padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
   }
+  html { background: linear-gradient(90deg, var(--b-purple) 0 20%, var(--b-orange) 20% 40%, var(--b-green) 40% 60%, var(--b-blue) 60% 80%, var(--b-yellow) 80% 100%) top / 100% 4px no-repeat, var(--bg); } /* taste-skill-ignore: franja de marca en cinco tonos planos */
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--lc); margin-right: 7px; vertical-align: 1px; }
+  h1 .dot { width: 12px; height: 12px; margin-right: 10px; vertical-align: 2px; }
   .pz { position: relative; max-width: 1200px; margin: 0 auto; }
   h1, h2, h3 { margin: 0; font-weight: 600; }
   h1 { font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: -.01em; }
@@ -97,7 +102,7 @@
   .seg button:hover { color: var(--ink); }
   .seg button[aria-pressed="true"] { background: var(--raised); color: var(--ink); font-weight: 500; }
   input[type="date"] { background: var(--panel); border: 1px solid var(--control); border-radius: 6px; height: 32px; padding: 0 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
-  .notice { margin-bottom: 12px; padding: 8px 12px; background: var(--p-warn-bg); color: var(--p-warn-ink); border-radius: 6px; font-size: 13px; }
+  .notice { margin-bottom: 12px; padding: 8px 12px; box-shadow: inset 3px 0 0 var(--b-yellow); background: var(--p-warn-bg); color: var(--p-warn-ink); border-radius: 6px; font-size: 13px; }
 
   /* cifras: las líneas son pestañas con su disponibilidad; debajo, el detalle de la elegida */
   .kp { padding: 0; overflow: hidden; }
@@ -105,7 +110,7 @@
   .kp-line { text-align: left; background: transparent; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 16px 20px 14px; cursor: pointer; display: grid; gap: 2px; min-width: 0; box-shadow: inset 0 2px 0 transparent; }
   .kp-line:last-child { border-right: 0; }
   .kp-line:hover { background: var(--rule); }
-  .kp-line[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--ink); background: var(--panel); }
+  .kp-line[aria-pressed="true"] { box-shadow: inset 0 3px 0 var(--lc); background: var(--panel); }
   .kp-line .nm { font-size: 13px; color: var(--muted); }
   .kp-line[aria-pressed="true"] .nm { color: var(--ink); font-weight: 600; }
   .kp-line .v { font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
@@ -124,7 +129,7 @@
   .tabs { display: flex; gap: 24px; margin-top: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
   .tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 8px 0 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); white-space: nowrap; }
   .tabs button:hover { color: var(--ink); }
-  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
   [role="tabpanel"] { margin-top: 12px; }
   .split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; align-items: start; }
   @media (max-width: 960px) { .split { grid-template-columns: minmax(0, 1fr); } }

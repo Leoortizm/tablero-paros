@@ -205,6 +205,9 @@
   const isInternal = () => ui.ty.em && ui.ty.op && !ui.ty.ext;
   const dispLabel = () => (isInternal() ? 'Disponibilidad interna' : 'Disponibilidad (tipos elegidos)');
   const nDays = () => Core.span(ui.s, ui.e);
+  const LPAL = ['var(--b-blue)', 'var(--b-green)', 'var(--b-purple)', 'var(--b-orange)', 'var(--b-yellow)'];
+  const lineColor = (n) => LPAL[Math.max(0, names().indexOf(n)) % LPAL.length];
+  const dot = (n) => el('i', { class: 'dot', style: '--lc:' + lineColor(n) });
   const KEEP = /^(L2 Krones|Zegla 30|Zegla 40)$/i; /* solo las líneas de interés */
   const names = () => Object.keys(store.lines).filter((n) => KEEP.test(n)).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
   const maxDate = () => names().map((n) => store.lines[n].hasta).sort().pop();
@@ -320,8 +323,8 @@
       const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
       const noPrev = pr.e < a.desde;
       if (!noPrev) anyPrev = true;
-      lines.append(el('button', { type: 'button', class: 'kp-line', 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
-        el('span', { class: 'nm', text: name }),
+      lines.append(el('button', { type: 'button', class: 'kp-line', style: '--lc:' + lineColor(name), 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
+        el('span', { class: 'nm' }, dot(name), name),
         el('span', { class: 'v', text: w.disp == null ? '—' : fP(w.disp) }),
         el('span', { class: 's' }, fH(w.sel) + ' de paro', noPrev || w.disp == null || p.disp == null ? null : [' · ', deltaEl((w.disp - p.disp) * 100, true, ' pts', 1)])));
     }
@@ -357,7 +360,7 @@
   }
   function renderFocus() {
     const f = focusData();
-    $('focus-title').textContent = 'Paros de ' + ui.line;
+    $('focus-title').replaceChildren(dot(ui.line), 'Paros de ' + ui.line);
     $('focus-sub').textContent = rangeText(ui.s, ui.e) + ' · paro ' + tyText();
     const host = $('focus-body'); host.replaceChildren();
     if (!f.par.rows.length) { host.append('Sin paros de este tipo en el periodo.'); return; }
@@ -493,7 +496,7 @@
     for (const s of sets) {
       const box = el('div', {});
       const tot = Core.sumRange(s.a, ui.s, ui.e, ui.ty);
-      box.append(el('h3', {}, el('span', { class: s.n === ui.line ? 'cur' : '' }, s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
+      box.append(el('h3', {}, el('span', { class: s.n === ui.line ? 'cur' : '' }, dot(s.n), s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
       const wrap = el('div', {});
       box.append(wrap); host.append(box);
       drawBars(wrap, s, ymax, bs);
@@ -550,7 +553,7 @@
     const a = store.lines[ui.line];
     if (ui.day < a.desde) ui.day = a.desde;
     if (ui.day > a.hasta) ui.day = a.hasta;
-    $('day-line').textContent = ui.line;
+    $('day-line').replaceChildren(dot(ui.line), ui.line);
     $('day-when').textContent = dLong.format(D(ui.day));
     $('day-prev').disabled = ui.day <= a.desde;
     $('day-next').disabled = ui.day >= a.hasta;

@@ -1,4 +1,4 @@
-"""Arma el tablero: junta src/template.html + src/core.js + src/rules.json.
+"""Arma el tablero: junta src/template.html + src/styles.css + src/app.js + src/core.js + src/rules.json.
 Uso:
   python3 build.py             -> dist/ (versión sin Firebase)
   python3 build.py --firebase  -> public/index.html (para Firebase Hosting; requiere firebase/firebase-config.json)
@@ -11,8 +11,10 @@ root = pathlib.Path(__file__).parent
 t = (root / 'src/template.html').read_text(encoding='utf-8')
 rules = json.dumps(json.loads((root / 'src/rules.json').read_text(encoding='utf-8')), ensure_ascii=False)
 core = (root / 'src/core.js').read_text(encoding='utf-8')
-assert '</script' not in core
-t = t.replace('/*RULES_JSON*/', rules).replace('/*CORE_JS*/', core)
+css = (root / 'src/styles.css').read_text(encoding='utf-8')
+app = (root / 'src/app.js').read_text(encoding='utf-8')
+assert '</script' not in core and '</script' not in app and '</style' not in css
+t = t.replace('/*CSS*/', css).replace('/*RULES_JSON*/', rules).replace('/*CORE_JS*/', core).replace('/*APP_JS*/', app)
 (root / 'dist').mkdir(exist_ok=True)
 (root / 'dist/tablero.html').write_text(t, encoding='utf-8')
 (root / 'dist/index.html').write_text(

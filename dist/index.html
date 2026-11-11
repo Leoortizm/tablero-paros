@@ -43,19 +43,13 @@
   button, input, select { font: inherit; color: inherit; }
   button:focus-visible, input:focus-visible, select:focus-visible, .pick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-  .top { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; padding: 20px 22px 26px; border-radius: 10px; background: var(--band); color: var(--on-band); }
-  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(90deg, var(--b-purple) 0 20%, var(--b-orange) 20% 40%, var(--b-green) 40% 60%, var(--b-blue) 60% 80%, var(--b-yellow) 80% 100%); }
-  .top > * { position: relative; z-index: 1; }
-  .top h1 { color: var(--on-band); }
-  .top p { margin: 4px 0 0; color: rgba(255,255,255,.78); max-width: 62ch; }
-  .top .muted { color: rgba(255,255,255,.72); }
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-bottom: 14px; padding: 14px 18px; border-radius: 10px; background: var(--band); color: var(--on-band); border-bottom: 4px solid var(--b-orange); }
+  .top h1 { color: var(--on-band); font-size: 28px; }
+  .top p { margin: 2px 0 0; color: rgba(255,255,255,.8); font-size: 14px; }
+  .top-act { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: rgba(255,255,255,.8); }
   .top .btn.ghost { color: var(--on-band); border-color: rgba(255,255,255,.5); }
   .top .btn.ghost:hover { background: rgba(255,255,255,.12); }
   .top button:focus-visible { outline-color: #fff; }
-  .fizz { position: absolute !important; right: 0; top: 0; height: 100%; width: 320px; z-index: 0 !important; pointer-events: none; }
-  .fizz circle { fill: none; stroke-width: 2; opacity: .55; }
-  @media (prefers-reduced-motion: no-preference) { .fizz circle { animation: rise 9s ease-in infinite; } .fizz circle:nth-child(2n) { animation-duration: 12s; animation-delay: -4s; } .fizz circle:nth-child(3n) { animation-duration: 7s; animation-delay: -2s; } }
-  @keyframes rise { from { transform: translateY(18px); opacity: 0; } 20% { opacity: .55; } to { transform: translateY(-70px); opacity: 0; } }
   .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--lc); margin-right: 7px; vertical-align: 0; }
   .btn { background: var(--ink); color: var(--bg); border: 0; padding: 9px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
   .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
@@ -85,7 +79,8 @@
   .priv { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
 
   /* controles */
-  .controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-top: 16px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-top: 16px; padding: 8px 0; }
+  @media (min-width: 900px) and (min-height: 620px) { .controls { position: sticky; top: 0; z-index: 10; background: var(--bg); box-shadow: 0 1px 0 var(--line); } }
   .ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
   .ctl > span { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); flex-wrap: wrap; }
@@ -96,12 +91,13 @@
   .notice { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--warn); background: var(--panel); border-radius: 0 6px 6px 0; font-size: 13.5px; }
 
   /* tarjetas por línea */
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 12px; margin-top: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 12px; margin-top: 8px; }
   .kpi { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px 14px; cursor: pointer; display: grid; gap: 8px; min-width: 0; box-shadow: inset 0 5px 0 var(--lc); }
   .kpi[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink), inset 0 5px 0 var(--lc); }
   .kpi .nm { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
   .kpi .big { font: 500 38px/1 var(--f-mono); letter-spacing: -.02em; }
-  .kpi .row { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; border-top: 1px solid var(--line); padding-top: 7px; }
+  .kpi .row { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; border-top: 1px solid var(--line); padding-top: 6px; }
+  .kpi { gap: 6px; }
   .delta.good { color: var(--ok); } .delta.bad { color: var(--bad); } .delta.flat { color: var(--muted); }
 
   /* barras por día */
@@ -133,7 +129,7 @@
   .hb .nt { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
   .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; color: var(--muted); margin-left: 6px; white-space: nowrap; }
   .long { display: grid; gap: 8px; }
-  .long .l { display: grid; grid-template-columns: 4.2rem 4.6rem 1fr; gap: 4px 10px; align-items: baseline; font-size: 14px; }
+  .long .l { display: grid; grid-template-columns: 4.6rem 6.4rem 1fr; gap: 4px 10px; align-items: baseline; font-size: 14px; }
   .long .l .nt { grid-column: 3; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
   .empty { color: var(--muted); font-size: 14px; }
 
@@ -162,29 +158,58 @@
   .foot { margin-top: 28px; text-align: center; }
   .linklike { background: none; border: 0; padding: 4px 8px; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
   #nodata { margin-top: 16px; color: var(--muted); }
+
+  /* lo importante */
+  .panel > header > div > p { margin: 0; color: var(--muted); font-size: 13px; }
+  .insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 10px; }
+  .ins { display: grid; gap: 3px; align-content: start; text-align: left; background: var(--cell0); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+  button.ins { cursor: pointer; }
+  button.ins:hover, .pick:hover { background: var(--sel); }
+  .ins .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .ins b { font: 600 22px/1.15 var(--f-display); overflow-wrap: anywhere; }
+  .ins .d { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+
+  /* pestañas */
+  .tabs { display: flex; gap: 4px; margin-top: 20px; border-bottom: 2px solid var(--line); overflow-x: auto; }
+  .tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 9px 16px; cursor: pointer; font: 600 17px var(--f-display); letter-spacing: .02em; color: var(--muted); white-space: nowrap; }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  [role="tabpanel"] { margin-top: 16px; }
+  .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 16px; align-items: start; }
+
+  /* filas que se pueden tocar */
+  .pick { background: transparent; border: 0; padding: 4px 6px; margin: -4px -6px; border-radius: 6px; text-align: left; cursor: pointer; width: calc(100% + 12px); }
+  .hb .it.pick { display: grid; }
+  .long .l .nt { grid-column: 3; }
+  .back { justify-self: start; padding-left: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .btn.ghost { padding: 6px 12px; font-size: 13.5px; }
+  tr.att td:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
+  td b { font-weight: 600; }
+  @media print { .controls { position: static; } .drop, .foot, .top-act, .tabs, #btn-copy, #btn-csv { display: none !important; } [role="tabpanel"][hidden] { display: block !important; } body { background: #fff; } }
+
 </style>
 
 <div class="pz">
-  <div class="top">
-    <svg class="fizz" viewBox="0 0 320 120" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
-      <circle cx="40" cy="95" r="9" stroke="var(--b-blue)"/><circle cx="85" cy="70" r="5" stroke="#fff"/><circle cx="130" cy="100" r="13" stroke="var(--b-green)"/><circle cx="172" cy="62" r="7" stroke="var(--b-yellow)"/><circle cx="215" cy="92" r="10" stroke="#fff"/><circle cx="255" cy="55" r="6" stroke="var(--b-orange)"/><circle cx="290" cy="98" r="12" stroke="var(--b-purple)"/><circle cx="105" cy="40" r="4" stroke="#fff"/><circle cx="235" cy="30" r="4" stroke="var(--b-blue)"/>
-    </svg>
+  <header class="top">
     <div>
       <h1>Tablero de paros</h1>
-      <p>Paros de líneas de producción, día a día. Los datos salen de los reportes de Atlas que cargues.</p>
+      <p id="asof">Paros de líneas de producción a partir de los reportes de Atlas.</p>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="muted small" id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
-  </div>
+    <div class="top-act"><span class="small" id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
+  </header>
   <input type="file" id="file" accept=".xlsx,.xls" multiple hidden>
 
   <div class="drop" id="drop">
     <div id="drop-intro">
       <h2>Suelta aquí los reportes de Atlas</h2>
-      <div class="muted">Un archivo Excel por línea (Reporte YTD). También puedes tocar para elegirlos.</div>
+      <div class="muted">Reporte de eventos (Uptime &amp; Downtime) en Excel. También puedes tocar para elegirlo.</div>
       <ol>
-        <li>En Atlas, descarga el reporte de eventos (Uptime &amp; Downtime) de cada línea.</li>
-        <li>Arrástralos juntos a este recuadro. La lectura tarda unos segundos por archivo.</li>
-        <li>Puedes cargar solo lo reciente (por ejemplo el último mes): se reescriben las fechas que traiga el reporte y se conserva lo anterior. Empieza el reporte en un día completo.</li>
+        <li>Descarga de Atlas el reporte de eventos, de una línea o de toda la planta.</li>
+        <li>Arrástralo a este recuadro. La lectura tarda unos segundos por archivo.</li>
+        <li>Puedes cargar solo lo reciente: se reescriben las fechas que traiga el reporte y se conserva lo anterior. Empieza el reporte en un día completo.</li>
       </ol>
     </div>
     <ul class="files" id="files" aria-live="polite"></ul>
@@ -194,56 +219,82 @@
   <div class="panel" id="nodata" hidden>Cargando datos…</div>
 
   <div id="app" hidden>
-    <div class="controls">
+    <div class="controls" id="controls">
       <div class="ctl"><span>Línea</span><div class="seg" id="seg-line" role="group" aria-label="Línea"></div></div>
       <div class="ctl"><span>Periodo</span><input type="date" id="d-from" aria-label="Desde"><span aria-hidden="true">a</span><input type="date" id="d-to" aria-label="Hasta"><div class="seg" id="seg-pre" role="group" aria-label="Atajos de periodo"></div></div>
       <div class="ctl"><span>Tipo de paro</span><div class="seg" id="seg-type" role="group" aria-label="Tipo de paro"></div></div>
+      <div class="ctl" id="chip-comp" hidden></div>
     </div>
     <div class="notice" id="notice" hidden></div>
 
     <div class="kpis" id="kpis"></div>
 
-    <section class="block panel">
+    <section class="block panel focus">
       <header>
-        <h2 id="bars-title">Horas de paro por día</h2>
-        <p id="bars-sub"></p>
+        <div><h2 id="focus-title">Lo importante</h2><p id="focus-sub"></p></div>
+        <button class="btn ghost" id="btn-copy" type="button">Copiar resumen</button>
       </header>
-      <div class="bars" id="bars"></div>
-      <div class="legend">
-        <span><i class="sw" style="background:var(--accent)"></i><b id="leg-in" style="font-weight:400"></b></span>
-        <span id="leg-out"><i class="sw" style="background:var(--bar-mute)"></i>Antes del periodo</span>
-        <span id="leg-avg"><i class="sw line"></i>Promedio móvil de 7 días</span>
+      <div class="insights" id="focus-body"></div>
+    </section>
+
+    <div class="tabs" id="tabs" role="tablist" aria-label="Vistas"></div>
+
+    <div id="tab-pri" role="tabpanel" aria-labelledby="tabbtn-pri">
+      <div class="split">
+        <section class="panel">
+          <header><h2 id="par-title">Pareto por equipo</h2><p id="par-sub"></p></header>
+          <div class="hb" id="par"></div>
+        </section>
+        <section class="panel">
+          <header><h2>Paros más largos</h2><p id="lar-sub"></p></header>
+          <div class="long" id="lar"></div>
+        </section>
       </div>
-    </section>
+      <section class="block panel">
+        <header>
+          <div><h2>En qué enfocarse</h2><p id="cmp-sub"></p></div>
+          <div class="acts"><div class="chips" id="cmp-flt" role="group" aria-label="Filtrar por estado"></div><button class="btn ghost" id="btn-csv" type="button">Descargar CSV</button></div>
+        </header>
+        <div class="scroll"><table id="cmp"></table></div>
+        <p class="small muted" style="margin:10px 0 0"><b>Nuevo</b> o <b>Resuelto</b>: casi no hay horas en uno de los dos periodos (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b>: cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b>: ocurre en la mitad de los días o más. El resto es <b>Intermitente</b>. Requieren atención: Nuevo, Empeora y Persiste.</p>
+      </section>
+    </div>
 
-    <section class="block panel">
-      <header>
-        <h2>Detalle del día · <span id="day-line"></span></h2>
-        <div class="daynav">
-          <button type="button" id="day-prev" aria-label="Día anterior">‹</button>
-          <div class="when" id="day-when"></div>
-          <button type="button" id="day-next" aria-label="Día siguiente">›</button>
+    <div id="tab-ten" role="tabpanel" aria-labelledby="tabbtn-ten" hidden>
+      <section class="panel">
+        <header>
+          <h2 id="bars-title">Horas de paro por día</h2>
+          <p id="bars-sub"></p>
+        </header>
+        <div class="bars" id="bars"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--accent)"></i><b id="leg-in" style="font-weight:400"></b></span>
+          <span id="leg-out"><i class="sw" style="background:var(--bar-mute)"></i>Antes del periodo</span>
+          <span id="leg-avg"><i class="sw line"></i>Promedio móvil de 7 días</span>
         </div>
-      </header>
-      <div id="day-body"></div>
-    </section>
+      </section>
+      <section class="block panel">
+        <header>
+          <h2 id="heat-title">Qué se repite</h2>
+          <p id="heat-sub"></p>
+        </header>
+        <div class="scroll"><div class="heat" id="heat"></div></div>
+      </section>
+    </div>
 
-    <section class="block panel">
-      <header>
-        <h2 id="heat-title">Qué se repite</h2>
-        <p id="heat-sub"></p>
-      </header>
-      <div class="scroll"><div class="heat" id="heat"></div></div>
-    </section>
-
-    <section class="block panel">
-      <header>
-        <h2>En qué enfocarse</h2>
-        <p id="cmp-sub"></p>
-      </header>
-      <div class="scroll"><table id="cmp"></table></div>
-      <p class="small muted" style="margin:10px 0 0">Estado: <b>Nuevo</b> o <b>Resuelto</b> si en uno de los dos periodos hay muy pocas horas (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b> si cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b> si ocurre en la mitad de los días o más; si no, <b>Intermitente</b>. Los comentarios se estandarizan por reglas de texto: revisa los casos dudosos.</p>
-    </section>
+    <div id="tab-dia" role="tabpanel" aria-labelledby="tabbtn-dia" hidden>
+      <section class="panel">
+        <header>
+          <h2>Detalle del día · <span id="day-line"></span></h2>
+          <div class="daynav">
+            <button type="button" id="day-prev" aria-label="Día anterior">‹</button>
+            <div class="when" id="day-when"></div>
+            <button type="button" id="day-next" aria-label="Día siguiente">›</button>
+          </div>
+        </header>
+        <div id="day-body"></div>
+      </section>
+    </div>
   </div>
   <div id="tip" hidden></div>
   <footer class="foot"><button type="button" id="btn-admin" class="linklike" hidden>Acceso administrador</button></footer>
@@ -432,7 +483,7 @@ const Core = (() => {
   const largosIn = (agg, s, e, ty) => agg.largos.filter((x) => ty[x.t] && x.f >= s && x.f <= e);
 
   /* componente + causa + tipo dentro del periodo y del periodo anterior (mismo largo) */
-  function compare(agg, s, e, ty) {
+  function compare(agg, s, e, ty, comp) {
     const pr = prevRange(s, e), n = pr.n;
     const m = new Map();
     const touch = (it) => {
@@ -442,13 +493,37 @@ const Core = (() => {
       return o;
     };
     for (const it of itemsIn(agg, s, e, ty)) {
+      if (comp && it.comp !== comp) continue;
       const o = touch(it);
       o.h += it.min / 60; o.reg += it.reg; o.dias.add(it.f);
       if (it.note && it.min > o.nm) { o.nm = it.min; o.note = it.note; }
     }
-    for (const it of itemsIn(agg, pr.s, pr.e, ty)) touch(it).hp += it.min / 60;
+    for (const it of itemsIn(agg, pr.s, pr.e, ty)) { if (comp && it.comp !== comp) continue; touch(it).hp += it.min / 60; }
     return [...m.values()].map((o) => ({ comp: o.comp, causa: o.causa, t: o.t, h: o.h, hp: o.hp, dias: o.dias.size, reg: o.reg, note: o.note, estado: estado(o.h, o.hp, o.dias.size, n) }))
       .sort((a, b) => (b.h + b.hp * 0.01) - (a.h + a.hp * 0.01));
+  }
+
+
+  /* Pareto del periodo: horas, eventos y % acumulado por equipo (o por causa dentro de un equipo) */
+  function pareto(agg, s, e, ty, comp) {
+    const pr = prevRange(s, e);
+    const m = new Map();
+    const key = (it) => (comp ? it.causa : it.comp);
+    const touch = (k) => { let o = m.get(k); if (!o) { o = { k, h: 0, hp: 0, reg: 0, dias: new Set() }; m.set(k, o); } return o; };
+    for (const it of itemsIn(agg, s, e, ty)) { if (comp && it.comp !== comp) continue; const o = touch(key(it)); o.h += it.min / 60; o.reg += it.reg; o.dias.add(it.f); }
+    for (const it of itemsIn(agg, pr.s, pr.e, ty)) { if (comp && it.comp !== comp) continue; touch(key(it)).hp += it.min / 60; }
+    const rows = [...m.values()].filter((o) => o.h > 0).sort((a, b) => b.h - a.h);
+    const tot = rows.reduce((p, c) => p + c.h, 0);
+    let cum = 0;
+    return { tot, rows: rows.map((o) => { cum += o.h; return { k: o.k, h: o.h, hp: o.hp, reg: o.reg, dias: o.dias.size, pct: tot ? o.h / tot : 0, cum: tot ? cum / tot : 0 }; }) };
+  }
+
+  /* Confiabilidad del periodo: eventos registrados, duración media del paro (MTTR) y tiempo medio entre paros (MTBF) */
+  function reliability(agg, s, e, ty) {
+    const w = sumRange(agg, s, e, ty);
+    let reg = 0;
+    for (const it of itemsIn(agg, s, e, ty)) reg += it.reg;
+    return { reg, mttr: reg ? (w.sel * 60) / reg : null, mtbf: reg ? w.up / reg : null };
   }
 
   /* los umbrales en horas se escalan con el largo del periodo (base: 7 días) */
@@ -525,20 +600,22 @@ const Core = (() => {
     });
   }
 
-  function heat(agg, bs, ty, rowsMax) {
+  function heat(agg, bs, ty, rowsMax, comp) {
     const idx = new Map();
     bs.forEach((b, i) => { for (let x = dnum(b.s); x <= dnum(b.e); x++) idx.set(dstr(x), i); });
     const m = new Map();
     for (const it of agg.items) {
       if (!ty[it.t] || !idx.has(it.f)) continue;
-      let o = m.get(it.comp);
-      if (!o) { o = { comp: it.comp, tot: 0, v: new Array(bs.length).fill(0) }; m.set(it.comp, o); }
+      if (comp && it.comp !== comp) continue;
+      const k = comp ? it.causa : it.comp;
+      let o = m.get(k);
+      if (!o) { o = { comp: k, tot: 0, v: new Array(bs.length).fill(0) }; m.set(k, o); }
       o.v[idx.get(it.f)] += it.min / 60; o.tot += it.min / 60;
     }
     return { buckets: bs, rows: [...m.values()].sort((a, b) => b.tot - a.tot).slice(0, rowsMax) };
   }
 
-  return { classify, sheetRows, aggregateRows, mergeLine, sumRange, prevRange, itemsIn, largosIn, compare, dayDetail, buckets, series, heat, estado, addDays, dnum, dstr, span };
+  return { pareto, reliability, classify, sheetRows, aggregateRows, mergeLine, sumRange, prevRange, itemsIn, largosIn, compare, dayDetail, buckets, series, heat, estado, addDays, dnum, dstr, span };
 })();
 if (typeof module !== 'undefined') module.exports = Core;
 </script>
@@ -648,7 +725,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       const up = names().filter((n) => !remote.has(n) || remote.get(n) < store.lines[n].cargado);
       if (edit.on && up.length && !cloud.saving) { cloud.saving = true; await cloudSave(up); cloud.saving = false; }
       else if (!edit.on) {
-        cloudStatus(names().length ? 'Datos hasta el ' + dLong.format(D(maxDate())) : 'Aún no hay datos publicados.');
+        cloudStatus(names().length ? '' : 'Aún no hay datos publicados.');
         if (!names().length) $('nodata').textContent = 'Aún no hay datos publicados.';
       } else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
     }, () => cloudStatus('Sin conexión a la base en línea', true));
@@ -736,7 +813,16 @@ if (typeof module !== 'undefined') module.exports = Core;
   const TL = { em: 'electromecánico', op: 'operacional', ext: 'externo' };
   const TB = { em: 'Electromecánicas', op: 'Operacionales', ext: 'Externas' };
   const dMonth = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-  const ui = { line: null, s: null, e: null, day: null, ty: { em: true, op: true, ext: false } };
+  const ev = (n) => nf0.format(n) + (n === 1 ? ' evento' : ' eventos');
+  const TABS = { pri: 'Prioridades', ten: 'Tendencia', dia: 'Día a día' };
+  const ui = { line: null, s: null, e: null, day: null, ty: { em: true, op: true, ext: false }, tab: 'pri', comp: null, flt: 'all' };
+  /* preferencias de quien mira (línea, pestaña y tipos de paro); la página funciona igual sin ellas */
+  const PREF = 'tablero-paros:ui';
+  const loadPrefs = () => { try { const p = JSON.parse(localStorage.getItem(PREF) || 'null'); if (!p) return; if (p.line) ui.line = p.line; if (p.tab && TABS[p.tab]) ui.tab = p.tab; if (p.ty && (p.ty.em || p.ty.op || p.ty.ext)) ui.ty = { em: !!p.ty.em, op: !!p.ty.op, ext: !!p.ty.ext }; } catch (e) { /* sin preferencias */ } };
+  const savePrefs = () => { try { localStorage.setItem(PREF, JSON.stringify({ line: ui.line, tab: ui.tab, ty: ui.ty })); } catch (e) { /* sin preferencias */ } };
+  loadPrefs();
+  const setLine = (n) => { if (n !== ui.line) ui.comp = null; ui.line = n; renderAll(); };
+  const goDay = (f, line) => { if (line && line !== ui.line) { ui.comp = null; ui.line = line; } ui.day = f; ui.tab = 'dia'; hideTip(); renderAll(); document.getElementById('tabs').scrollIntoView({ block: 'start', behavior: 'smooth' }); };
   const tyList = () => ['em', 'op', 'ext'].filter((k) => ui.ty[k]);
   const tyText = () => { const l = tyList().map((k) => TL[k]); return l.length > 1 ? l.slice(0, -1).join(', ') + ' y ' + l[l.length - 1] : l[0]; };
   const isInternal = () => ui.ty.em && ui.ty.op && !ui.ty.ext;
@@ -764,7 +850,8 @@ if (typeof module !== 'undefined') module.exports = Core;
     $('drop').classList.add('compact');
     $('drop-intro').hidden = true;
     document.querySelector('.priv').hidden = true;
-    if (!ui.line || !store.lines[ui.line]) ui.line = ns[0];
+    if (!ui.line || !ns.includes(ui.line)) { ui.line = ns[0]; ui.comp = null; }
+    $('asof').textContent = 'Datos hasta el ' + dLong.format(D(maxDate()));
     const mx = maxDate(), mn = minDate();
     if (fromLoad || !ui.e) { ui.e = mx; ui.s = Core.addDays(mx, -6); }
     if (ui.e > mx) ui.e = mx;
@@ -790,12 +877,12 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   function renderAll() {
-    renderControls(); renderNotice(); renderKpis(); renderBars(); renderDay(); renderHeat(); renderCompare();
+    savePrefs(); renderControls(); renderNotice(); renderKpis(); renderFocus(); renderTabs(); renderPareto(); renderLargos(); renderCompare(); renderBars(); renderHeat(); renderDay();
   }
 
   function renderControls() {
     const sl = $('seg-line'); sl.replaceChildren();
-    for (const n of names()) sl.append(el('button', { type: 'button', 'aria-pressed': String(n === ui.line), onclick: () => { ui.line = n; renderAll(); } }, el('i', { class: 'dot', style: '--lc:' + lineColor(n) }), n));
+    for (const n of names()) sl.append(el('button', { type: 'button', 'aria-pressed': String(n === ui.line), onclick: () => setLine(n) }, el('i', { class: 'dot', style: '--lc:' + lineColor(n) }), n));
     const mx = maxDate(), mn = minDate();
     const a = $('d-from'), b = $('d-to');
     a.min = b.min = mn; a.max = b.max = mx;
@@ -808,6 +895,8 @@ if (typeof module !== 'undefined') module.exports = Core;
       const f = from < mn ? mn : from;
       sp.append(el('button', { type: 'button', 'aria-pressed': String(ui.s === f && ui.e === mx), text: lab, onclick: () => setPeriod(f, mx) }));
     }
+    const ch = $('chip-comp'); ch.replaceChildren(); ch.hidden = !ui.comp;
+    if (ui.comp) ch.append(el('span', { text: 'Equipo' }), el('button', { type: 'button', class: 'chip on', 'aria-label': 'Quitar filtro de equipo ' + ui.comp, onclick: () => { ui.comp = null; renderAll(); } }, ui.comp, ' ✕'));
     const st = $('seg-type'); st.replaceChildren();
     for (const k of ['em', 'op', 'ext']) {
       st.append(el('button', { type: 'button', 'aria-pressed': String(!!ui.ty[k]), text: TB[k], onclick: () => {
@@ -853,15 +942,134 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (const name of names()) {
       const a = store.lines[name];
       const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
-      const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length, largosP = Core.largosIn(a, pr.s, pr.e, ui.ty).length;
+      const r = Core.reliability(a, ui.s, ui.e, ui.ty), rp = Core.reliability(a, pr.s, pr.e, ui.ty);
+      const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length;
       const noPrev = pr.e < a.desde;
-      host.append(el('button', { type: 'button', class: 'kpi', style: '--lc:' + lineColor(name), 'aria-pressed': String(name === ui.line), onclick: () => { ui.line = name; renderAll(); } },
+      const row = (lab, val, d) => el('div', { class: 'row' }, el('span', { text: lab }), el('span', { class: 'num' }, val, ' ', noPrev ? null : d));
+      host.append(el('button', { type: 'button', class: 'kpi', style: '--lc:' + lineColor(name), 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
         el('div', { class: 'nm' }, el('h3', { text: name }), el('span', { class: 'muted small', text: rangeText(ui.s, ui.e) })),
         el('div', {}, el('div', { class: 'muted small', text: dispLabel() }), el('div', { class: 'big', text: w.disp == null ? '—' : fP(w.disp) }),
           el('div', { class: 'small' }, noPrev ? el('span', { class: 'muted', text: 'sin periodo previo para comparar' }) : [deltaEl(w.disp != null && p.disp != null ? (w.disp - p.disp) * 100 : null, true, ' pts', 1), el('span', { class: 'muted', text: ' vs ' + n + (n === 1 ? ' día' : ' días') + ' previos' })])),
-        el('div', { class: 'row' }, el('span', { text: 'Paro' }), el('span', { class: 'num' }, fH(w.sel), ' ', noPrev ? null : deltaEl(w.sel - p.sel, false, ' h', 1))),
-        el('div', { class: 'row' }, el('span', { text: 'Paros de más de 30 min' }), el('span', { class: 'num' }, nf0.format(largos), ' ', noPrev ? null : deltaEl(largos - largosP, false, '', 0)))));
+        row('Horas de paro', fH(w.sel), deltaEl(w.sel - p.sel, false, ' h', 1)),
+        row('Eventos · de 30 min o más', nf0.format(r.reg) + ' · ' + nf0.format(largos), deltaEl(r.reg - rp.reg, false, '', 0)),
+        row('Duración media (MTTR)', r.mttr == null ? '—' : fDur(r.mttr), r.mttr != null && rp.mttr != null ? deltaEl(r.mttr - rp.mttr, false, ' min', 0) : null),
+        row('Tiempo entre paros (MTBF)', r.mtbf == null ? '—' : fH(r.mtbf), r.mtbf != null && rp.mtbf != null ? deltaEl(r.mtbf - rp.mtbf, true, ' h', 1) : null)));
     }
+  }
+
+  /* ---------- lo importante de la línea ---------- */
+  const ATT = { Nuevo: 1, Empeora: 1, Persiste: 1 };
+  function focusData() {
+    const a = store.lines[ui.line];
+    const par = Core.pareto(a, ui.s, ui.e, ui.ty);
+    const vital = [];
+    for (const r of par.rows) { vital.push(r); if (r.cum >= 0.8) break; }
+    const cmp = Core.compare(a, ui.s, ui.e, ui.ty).filter((x) => x.h + x.hp >= 0.5);
+    const att = cmp.filter((x) => ATT[x.estado]);
+    const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).slice().sort((x, y) => y.min - x.min);
+    return { a, par, vital, cmp, att, largos };
+  }
+  function renderFocus() {
+    const f = focusData();
+    $('focus-title').replaceChildren('Lo importante · ', el('i', { class: 'dot', style: '--lc:' + lineColor(ui.line) }), ui.line);
+    $('focus-sub').textContent = rangeText(ui.s, ui.e) + ' · paro ' + tyText();
+    const host = $('focus-body'); host.replaceChildren();
+    if (!f.par.rows.length) { host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
+    const tile = (k, big, txt, onclick) => el(onclick ? 'button' : 'div', Object.assign({ class: 'ins' }, onclick ? { type: 'button', onclick } : {}), el('span', { class: 'k', text: k }), el('b', { text: big }), el('span', { class: 'd', text: txt }));
+    const top = f.par.rows[0];
+    host.append(tile('Dónde se va el tiempo', nf0.format(f.vital[f.vital.length - 1].cum * 100) + '% en ' + f.vital.length + (f.vital.length === 1 ? ' equipo' : ' equipos'),
+      f.vital.slice(0, 3).map((r) => r.k + ' ' + fH(r.h)).join(' · ') + (f.vital.length > 3 ? ' · …' : ''), () => { ui.tab = 'pri'; ui.comp = null; renderAll(); }));
+    host.append(tile('Mayor contribuyente', top.k, fH(top.h) + ' (' + nf0.format(top.pct * 100) + '% del paro) en ' + ev(top.reg), () => { ui.tab = 'pri'; ui.comp = top.k; renderAll(); }));
+    const a0 = f.att[0];
+    host.append(tile('Requieren atención', nf0.format(f.att.length) + (f.att.length === 1 ? ' causa' : ' causas'),
+      a0 ? a0.comp + ' · ' + a0.causa + ' (' + a0.estado.toLowerCase() + ', ' + fH(a0.h) + ')' : 'Nada nuevo, que empeore o que persista.', () => { ui.tab = 'pri'; ui.flt = 'att'; renderAll(); }));
+    const l0 = f.largos[0];
+    host.append(tile('Paro más largo', l0 ? fDur(l0.min) : '—', l0 ? l0.comp + ' · ' + dShort.format(D(l0.f)) + (l0.hora ? ' ' + l0.hora : '') : 'Ningún paro de 30 min o más.', l0 ? () => goDay(l0.f) : null));
+  }
+  function summaryText() {
+    const f = focusData(), a = f.a;
+    const w = Core.sumRange(a, ui.s, ui.e, ui.ty), r = Core.reliability(a, ui.s, ui.e, ui.ty);
+    const L = [];
+    L.push('Paros ' + ui.line + ' · ' + rangeText(ui.s, ui.e) + ' (' + tyText() + ')');
+    L.push(dispLabel() + ': ' + (w.disp == null ? '—' : fP(w.disp)) + ' · Paro: ' + fH(w.sel) + ' · Eventos: ' + nf0.format(r.reg) + (r.mttr == null ? '' : ' · MTTR: ' + fDur(r.mttr)) + (r.mtbf == null ? '' : ' · MTBF: ' + fH(r.mtbf)));
+    if (f.par.rows.length) {
+      L.push('', 'Equipos con más paro:');
+      f.par.rows.slice(0, 5).forEach((x, i) => L.push((i + 1) + '. ' + x.k + ': ' + fH(x.h) + ' (' + nf0.format(x.pct * 100) + '%, ' + ev(x.reg) + ')'));
+    }
+    if (f.att.length) {
+      L.push('', 'Requieren atención:');
+      f.att.slice(0, 6).forEach((x) => L.push('- ' + x.comp + ' · ' + x.causa + ': ' + fH(x.h) + ' (' + x.estado + ', antes ' + fH(x.hp) + ')' + (x.note ? ' — ' + x.note : '')));
+    }
+    if (f.largos.length) {
+      L.push('', 'Paros de 30 min o más:');
+      f.largos.slice(0, 6).forEach((x) => L.push('- ' + dShort.format(D(x.f)) + (x.hora ? ' ' + x.hora : '') + ' · ' + fDur(x.min) + ' · ' + x.comp + (x.note ? ' — ' + x.note : '')));
+    }
+    return L.join('\n');
+  }
+  async function copySummary(btn) {
+    const txt = summaryText();
+    let ok = false;
+    try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {
+      try { const ta = el('textarea', { style: 'position:fixed;opacity:0' }); ta.value = txt; document.body.append(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch (e2) { ok = false; }
+    }
+    const old = btn.textContent; btn.textContent = ok ? 'Copiado ✓' : 'No se pudo copiar';
+    setTimeout(() => { btn.textContent = old; }, 1800);
+  }
+  function downloadCsv() {
+    const a = store.lines[ui.line];
+    const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const num = (x) => nf1.format(x).replace(/\./g, '');
+    const rows = [['Línea', 'Desde', 'Hasta', 'Equipo', 'Causa', 'Tipo', 'Horas', 'Horas periodo previo', 'Eventos', 'Días con paro', 'Estado', 'Comentario más repetido']];
+    for (const x of Core.compare(a, ui.s, ui.e, ui.ty, ui.comp)) rows.push([ui.line, ui.s, ui.e, x.comp, x.causa, TL[x.t], num(x.h), num(x.hp), x.reg, x.dias, x.estado, x.note]);
+    const blob = new Blob(['﻿' + rows.map((r) => r.map(q).join(';')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const u = URL.createObjectURL(blob);
+    const link = el('a', { href: u, download: 'paros-' + slug(ui.line) + '-' + ui.s + '_' + ui.e + '.csv' });
+    document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 2000);
+  }
+
+  /* ---------- pestañas ---------- */
+  function renderTabs() {
+    const host = $('tabs'); host.replaceChildren();
+    for (const k in TABS) {
+      host.append(el('button', { type: 'button', role: 'tab', id: 'tabbtn-' + k, 'aria-selected': String(ui.tab === k), 'aria-controls': 'tab-' + k, text: TABS[k], onclick: () => { ui.tab = k; renderAll(); } }));
+      $('tab-' + k).hidden = ui.tab !== k;
+    }
+  }
+
+  /* ---------- Pareto por equipo (o por causa de un equipo) ---------- */
+  function renderPareto() {
+    const a = store.lines[ui.line];
+    const par = Core.pareto(a, ui.s, ui.e, ui.ty, ui.comp);
+    $('par-title').textContent = ui.comp ? 'Causas de ' + ui.comp : 'Pareto por equipo';
+    const host = $('par'); host.replaceChildren();
+    const sub = $('par-sub');
+    if (!par.rows.length) { sub.textContent = ''; host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
+    let nv = 0; for (const r of par.rows) { nv++; if (r.cum >= 0.8) break; }
+    sub.textContent = nv + ' de ' + par.rows.length + (ui.comp ? ' causas' : ' equipos') + ' explican el ' + nf0.format(par.rows[nv - 1].cum * 100) + '% de ' + fH(par.tot) + '.' + (ui.comp ? '' : ' Toca un equipo para ver sus causas.');
+    if (ui.comp) host.append(el('button', { type: 'button', class: 'linklike back', text: '← Todos los equipos', onclick: () => { ui.comp = null; renderAll(); } }));
+    const mx = par.rows[0].h;
+    const noPrev = Core.prevRange(ui.s, ui.e).e < a.desde;
+    par.rows.slice(0, 12).forEach((r, i) => {
+      const kids = [
+        el('div', { class: 'lab' }, el('span', { text: r.k }), el('span', { class: 'num' }, fH(r.h), ' ', noPrev ? null : deltaEl(r.h - r.hp, false, ' h', 1))),
+        el('div', { class: 'track' }, el('div', { class: 'fill' + (i < nv ? '' : ' ext'), style: 'width:' + (100 * r.h / mx).toFixed(1) + '%' })),
+        el('div', { class: 'nt num', text: nf0.format(r.pct * 100) + '% del paro · acumulado ' + nf0.format(r.cum * 100) + '% · ' + ev(r.reg) + ' · ' + r.dias + (r.dias === 1 ? ' día' : ' días') })];
+      host.append(ui.comp ? el('div', { class: 'it' }, kids) : el('button', { type: 'button', class: 'it pick', onclick: () => { ui.comp = r.k; renderAll(); } }, kids));
+    });
+    if (par.rows.length > 12) host.append(el('div', { class: 'small muted', text: 'Y ' + (par.rows.length - 12) + ' más con menos horas.' }));
+  }
+
+  /* ---------- paros más largos del periodo ---------- */
+  function renderLargos() {
+    const a = store.lines[ui.line];
+    const list = Core.largosIn(a, ui.s, ui.e, ui.ty).filter((x) => !ui.comp || x.comp === ui.comp).sort((x, y) => y.min - x.min);
+    $('lar-sub').textContent = list.length ? nf0.format(list.length) + ' de 30 min o más' + (ui.comp ? ' en ' + ui.comp : '') + '. Toca uno para ver ese día.' : '';
+    const host = $('lar'); host.replaceChildren();
+    if (!list.length) { host.append(el('div', { class: 'empty', text: 'No hubo paros de 30 min o más en el periodo.' })); return; }
+    for (const x of list.slice(0, 8)) host.append(el('button', { type: 'button', class: 'l pick', onclick: () => goDay(x.f) },
+      el('span', { class: 'num', text: fDur(x.min) }), el('span', { class: 'num muted', text: dShort.format(D(x.f)) + (x.hora ? ' ' + x.hora : '') }), el('span', { text: x.comp + ' · ' + x.causa }),
+      el('span', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
   }
 
   /* ---------- tooltip ---------- */
@@ -944,7 +1152,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       showTip(ev, [bLabel(d.b), d.h == null ? 'Sin datos' : el('span', {}, el('b', { text: fH(d.h) }), ' de paro · disp. ' + (d.disp == null ? '—' : fP(d.disp)))]);
     });
     hit.addEventListener('pointerleave', hideTip);
-    hit.addEventListener('click', (ev) => { const d = s.d[idxOf(ev)]; ui.day = d.b.s; ui.line = s.n; hideTip(); renderAll(); });
+    hit.addEventListener('click', (ev) => { const d = s.d[idxOf(ev)]; goDay(d.b.s, s.n); });
     svg.append(hit);
     wrap.replaceChildren(svg);
   }
@@ -995,9 +1203,9 @@ if (typeof module !== 'undefined') module.exports = Core;
     const a = store.lines[ui.line];
     const bs = Core.buckets(ui.s, ui.e);
     const u = bs[0].u;
-    $('heat-title').textContent = 'Qué se repite: componente por ' + (u === 'd' ? 'día' : u === 'w' ? 'semana' : 'mes');
+    $('heat-title').textContent = 'Qué se repite: ' + (ui.comp ? 'causas de ' + ui.comp : 'equipo') + ' por ' + (u === 'd' ? 'día' : u === 'w' ? 'semana' : 'mes');
     $('heat-sub').textContent = ui.line + ' · horas de paro ' + tyText() + ', ' + rangeText(ui.s, ui.e) + '. Más oscuro, más horas.';
-    const hm = Core.heat(a, bs, ui.ty, 10);
+    const hm = Core.heat(a, bs, ui.ty, 10, ui.comp);
     const n = bs.length;
     const host = $('heat'); host.replaceChildren();
     host.style.gridTemplateColumns = `minmax(8.5rem, 13rem) repeat(${n}, minmax(1.7rem, 1fr)) 3.6rem`;
@@ -1017,7 +1225,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         if (v > 0) { c.style.background = 'color-mix(in srgb, var(--accent) ' + Math.round(t * 100) + '%, var(--cell0))'; c.style.color = t > 0.55 ? 'var(--on-accent)' : 'var(--ink)'; if (v >= 0.1) c.textContent = v >= 10 ? nf0.format(v) : nf1.format(v); }
         c.addEventListener('pointermove', (ev) => showTip(ev, [bLabel(b), el('span', {}, r.comp + ': ', el('b', { text: fH(v) }))]));
         c.addEventListener('pointerleave', hideTip);
-        c.addEventListener('click', () => { ui.day = b.s; hideTip(); renderAll(); });
+        c.addEventListener('click', () => goDay(b.s));
         host.append(c);
       });
       host.append(el('div', { class: 'tot', text: fH(r.tot) }));
@@ -1026,24 +1234,32 @@ if (typeof module !== 'undefined') module.exports = Core;
 
   /* ---------- en qué enfocarse ---------- */
   const BADGE = { Empeora: 'b-bad', Nuevo: 'b-bad', Persiste: 'b-warn', Intermitente: 'b-flat', Mejora: 'b-ok', Resuelto: 'b-ok' };
+  const FLT = { all: 'Todas', att: 'Requieren atención', ok: 'Mejoran' };
   function renderCompare() {
     const a = store.lines[ui.line];
     const pr = Core.prevRange(ui.s, ui.e), n = nDays();
-    $('cmp-sub').textContent = ui.line + ': ' + rangeText(ui.s, ui.e) + ' frente a ' + rangeText(pr.s, pr.e) + ' (' + n + (n === 1 ? ' día' : ' días') + ' cada uno). Paro ' + tyText() + '.';
+    $('cmp-sub').textContent = (ui.comp ? ui.comp + ' · ' : '') + rangeText(ui.s, ui.e) + ' frente a ' + rangeText(pr.s, pr.e) + ' (' + n + (n === 1 ? ' día' : ' días') + ' cada uno).';
     const multi = tyList().length > 1;
-    const rows = Core.compare(a, ui.s, ui.e, ui.ty).filter((x) => x.h + x.hp >= 0.5).slice(0, 12);
+    const all = Core.compare(a, ui.s, ui.e, ui.ty, ui.comp).filter((x) => x.h + x.hp >= 0.5);
+    const tot = Core.sumRange(a, ui.s, ui.e, ui.ty).sel;
+    const fl = $('cmp-flt'); fl.replaceChildren();
+    const cnt = { all: all.length, att: all.filter((x) => ATT[x.estado]).length, ok: all.filter((x) => x.estado === 'Mejora' || x.estado === 'Resuelto').length };
+    for (const k in FLT) fl.append(el('button', { type: 'button', class: 'chip' + (ui.flt === k ? ' on' : ''), 'aria-pressed': String(ui.flt === k), text: FLT[k] + ' ' + cnt[k], onclick: () => { ui.flt = k; renderAll(); } }));
+    const rows = all.filter((x) => ui.flt === 'all' || (ui.flt === 'att' ? ATT[x.estado] : (x.estado === 'Mejora' || x.estado === 'Resuelto'))).slice(0, 15);
     const t = $('cmp'); t.replaceChildren();
-    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Componente · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n', text: 'Previo' }), el('th', { class: 'n', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
+    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Equipo · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n hide-s', text: '% del paro' }), el('th', { class: 'n', text: 'Previo' }), el('th', { class: 'n hide-s', text: 'Eventos' }), el('th', { class: 'n hide-s', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
     const tb = el('tbody', {});
-    for (const x of rows) tb.append(el('tr', {},
-      el('td', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n', text: fH(x.hp) }),
-      el('td', { class: 'n', text: x.dias + '/' + n }), el('td', {}, el('span', { class: 'badge ' + BADGE[x.estado], text: x.estado })),
+    for (const x of rows) tb.append(el('tr', { class: ATT[x.estado] ? 'att' : '' },
+      el('td', {}, el('b', { text: x.comp }), ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n hide-s', text: tot ? nf0.format(100 * x.h / tot) + '%' : '—' }), el('td', { class: 'n', text: fH(x.hp) }),
+      el('td', { class: 'n hide-s', text: nf0.format(x.reg) }), el('td', { class: 'n hide-s', text: x.dias + '/' + n }), el('td', {}, el('span', { class: 'badge ' + BADGE[x.estado], text: x.estado })),
       el('td', { class: 'nota hide-s', text: x.note || '—' })));
-    if (!rows.length) tb.append(el('tr', {}, el('td', { colspan: 6, class: 'empty', text: 'Sin paros relevantes en este periodo.' })));
+    if (!rows.length) tb.append(el('tr', {}, el('td', { colspan: 8, class: 'empty', text: ui.flt === 'all' ? 'Sin paros relevantes en este periodo.' : 'Ninguna causa en este grupo.' })));
     t.append(tb);
   }
 
   /* ---------- arranque ---------- */
+  $('btn-copy').addEventListener('click', (e) => copySummary(e.currentTarget));
+  $('btn-csv').addEventListener('click', downloadCsv);
   $('btn-load').addEventListener('click', () => $('file').click());
   $('file').addEventListener('change', (e) => { handleFiles(e.target.files); e.target.value = ''; });
   const drop = $('drop');
@@ -1071,5 +1287,6 @@ if (typeof module !== 'undefined') module.exports = Core;
 
   restore().then((ok) => { if (ok) init(true); }).then(cloudStart);
 })();
+
 </script>
 </body></html>

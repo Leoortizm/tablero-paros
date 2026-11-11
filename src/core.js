@@ -180,7 +180,7 @@ const Core = (() => {
   const largosIn = (agg, s, e, ty) => agg.largos.filter((x) => ty[x.t] && x.f >= s && x.f <= e);
 
   /* componente + causa + tipo dentro del periodo y del periodo anterior (mismo largo) */
-  function compare(agg, s, e, ty) {
+  function compare(agg, s, e, ty, comp) {
     const pr = prevRange(s, e), n = pr.n;
     const m = new Map();
     const touch = (it) => {
@@ -190,13 +190,37 @@ const Core = (() => {
       return o;
     };
     for (const it of itemsIn(agg, s, e, ty)) {
+      if (comp && it.comp !== comp) continue;
       const o = touch(it);
       o.h += it.min / 60; o.reg += it.reg; o.dias.add(it.f);
       if (it.note && it.min > o.nm) { o.nm = it.min; o.note = it.note; }
     }
-    for (const it of itemsIn(agg, pr.s, pr.e, ty)) touch(it).hp += it.min / 60;
+    for (const it of itemsIn(agg, pr.s, pr.e, ty)) { if (comp && it.comp !== comp) continue; touch(it).hp += it.min / 60; }
     return [...m.values()].map((o) => ({ comp: o.comp, causa: o.causa, t: o.t, h: o.h, hp: o.hp, dias: o.dias.size, reg: o.reg, note: o.note, estado: estado(o.h, o.hp, o.dias.size, n) }))
       .sort((a, b) => (b.h + b.hp * 0.01) - (a.h + a.hp * 0.01));
+  }
+
+
+  /* Pareto del periodo: horas, eventos y % acumulado por equipo (o por causa dentro de un equipo) */
+  function pareto(agg, s, e, ty, comp) {
+    const pr = prevRange(s, e);
+    const m = new Map();
+    const key = (it) => (comp ? it.causa : it.comp);
+    const touch = (k) => { let o = m.get(k); if (!o) { o = { k, h: 0, hp: 0, reg: 0, dias: new Set() }; m.set(k, o); } return o; };
+    for (const it of itemsIn(agg, s, e, ty)) { if (comp && it.comp !== comp) continue; const o = touch(key(it)); o.h += it.min / 60; o.reg += it.reg; o.dias.add(it.f); }
+    for (const it of itemsIn(agg, pr.s, pr.e, ty)) { if (comp && it.comp !== comp) continue; touch(key(it)).hp += it.min / 60; }
+    const rows = [...m.values()].filter((o) => o.h > 0).sort((a, b) => b.h - a.h);
+    const tot = rows.reduce((p, c) => p + c.h, 0);
+    let cum = 0;
+    return { tot, rows: rows.map((o) => { cum += o.h; return { k: o.k, h: o.h, hp: o.hp, reg: o.reg, dias: o.dias.size, pct: tot ? o.h / tot : 0, cum: tot ? cum / tot : 0 }; }) };
+  }
+
+  /* Confiabilidad del periodo: eventos registrados, duración media del paro (MTTR) y tiempo medio entre paros (MTBF) */
+  function reliability(agg, s, e, ty) {
+    const w = sumRange(agg, s, e, ty);
+    let reg = 0;
+    for (const it of itemsIn(agg, s, e, ty)) reg += it.reg;
+    return { reg, mttr: reg ? (w.sel * 60) / reg : null, mtbf: reg ? w.up / reg : null };
   }
 
   /* los umbrales en horas se escalan con el largo del periodo (base: 7 días) */
@@ -273,19 +297,21 @@ const Core = (() => {
     });
   }
 
-  function heat(agg, bs, ty, rowsMax) {
+  function heat(agg, bs, ty, rowsMax, comp) {
     const idx = new Map();
     bs.forEach((b, i) => { for (let x = dnum(b.s); x <= dnum(b.e); x++) idx.set(dstr(x), i); });
     const m = new Map();
     for (const it of agg.items) {
       if (!ty[it.t] || !idx.has(it.f)) continue;
-      let o = m.get(it.comp);
-      if (!o) { o = { comp: it.comp, tot: 0, v: new Array(bs.length).fill(0) }; m.set(it.comp, o); }
+      if (comp && it.comp !== comp) continue;
+      const k = comp ? it.causa : it.comp;
+      let o = m.get(k);
+      if (!o) { o = { comp: k, tot: 0, v: new Array(bs.length).fill(0) }; m.set(k, o); }
       o.v[idx.get(it.f)] += it.min / 60; o.tot += it.min / 60;
     }
     return { buckets: bs, rows: [...m.values()].sort((a, b) => b.tot - a.tot).slice(0, rowsMax) };
   }
 
-  return { classify, sheetRows, aggregateRows, mergeLine, sumRange, prevRange, itemsIn, largosIn, compare, dayDetail, buckets, series, heat, estado, addDays, dnum, dstr, span };
+  return { pareto, reliability, classify, sheetRows, aggregateRows, mergeLine, sumRange, prevRange, itemsIn, largosIn, compare, dayDetail, buckets, series, heat, estado, addDays, dnum, dstr, span };
 })();
 if (typeof module !== 'undefined') module.exports = Core;

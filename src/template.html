@@ -1,17 +1,14 @@
 <title>Tablero de Paros</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
 <style>
 /*CSS*/
 </style>
 
 <div class="pz">
   <header class="top">
-    <div>
-      <h1>Tablero de paros</h1>
-      <p id="asof">Paros de líneas de producción a partir de los reportes de Atlas.</p>
-    </div>
-    <div class="top-act"><span class="small" id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
+    <div class="brand"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="8" width="7" height="4" fill="currentColor"/><rect x="12" y="8" width="7" height="4" fill="currentColor"/><rect x="9" y="3" width="2" height="14" fill="var(--accent)"/></svg>Tablero de paros</div>
+    <div class="top-act"><span id="asof">Paros de líneas de producción a partir de los reportes de Atlas.</span><span id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
   </header>
   <input type="file" id="file" accept=".xlsx,.xls" multiple hidden>
 
@@ -32,23 +29,19 @@
   <div class="panel" id="nodata" hidden>Cargando datos…</div>
 
   <div id="app" hidden>
+    <div class="title">
+      <div><h1 id="focus-title">Paros</h1><p class="scope" id="focus-sub"></p><p class="finding" id="focus-body"></p></div>
+      <button class="btn" id="btn-copy" type="button">Copiar resumen</button>
+    </div>
     <div class="controls" id="controls">
-      <div class="ctl"><span>Línea</span><div class="seg" id="seg-line" role="group" aria-label="Línea"></div></div>
       <div class="ctl"><span>Periodo</span><input type="date" id="d-from" aria-label="Desde"><span aria-hidden="true">a</span><input type="date" id="d-to" aria-label="Hasta"><div class="seg" id="seg-pre" role="group" aria-label="Atajos de periodo"></div></div>
       <div class="ctl"><span>Tipo de paro</span><div class="seg" id="seg-type" role="group" aria-label="Tipo de paro"></div></div>
       <div class="ctl" id="chip-comp" hidden></div>
     </div>
     <div class="notice" id="notice" hidden></div>
 
-    <div class="kpis" id="kpis"></div>
-
-    <section class="block panel focus">
-      <header>
-        <div><h2 id="focus-title">Lo importante</h2><p id="focus-sub"></p></div>
-        <button class="btn ghost" id="btn-copy" type="button">Copiar resumen</button>
-      </header>
-      <div class="insights" id="focus-body"></div>
-    </section>
+    <section class="panel kp" id="kpis" aria-label="Cifras por línea"></section>
+    <p class="kp-cap" id="kp-cap"></p>
 
     <div class="tabs" id="tabs" role="tablist" aria-label="Vistas"></div>
 
@@ -56,7 +49,7 @@
       <div class="split">
         <section class="panel">
           <header><h2 id="par-title">Pareto por equipo</h2><p id="par-sub"></p></header>
-          <div class="hb" id="par"></div>
+          <div class="par" id="par"></div>
         </section>
         <section class="panel">
           <header><h2>Paros más largos</h2><p id="lar-sub"></p></header>
@@ -69,7 +62,7 @@
           <div class="acts"><div class="chips" id="cmp-flt" role="group" aria-label="Filtrar por estado"></div><button class="btn ghost" id="btn-csv" type="button">Descargar CSV</button></div>
         </header>
         <div class="scroll"><table id="cmp"></table></div>
-        <p class="small muted" style="margin:10px 0 0"><b>Nuevo</b> o <b>Resuelto</b>: casi no hay horas en uno de los dos periodos (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b>: cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b>: ocurre en la mitad de los días o más. El resto es <b>Intermitente</b>. Requieren atención: Nuevo, Empeora y Persiste.</p>
+        <p class="legend-txt"><b>Nuevo</b> o <b>Resuelto</b>: casi no hay horas en uno de los dos periodos (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b>: cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b>: ocurre en la mitad de los días o más. El resto es <b>Intermitente</b>. Requieren atención: Nuevo, Empeora y Persiste.</p>
       </section>
     </div>
 

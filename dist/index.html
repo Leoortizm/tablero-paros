@@ -1,204 +1,257 @@
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>Tablero de Paros</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
 <style>
-  /* Concepto: tablero de sala de control. Datos densos en paneles planos, cifras en mono, naranja de señal solo para el tiempo de paro. */
+  /* Estilo: libro de registro sin color en el marco. El único tono (azul) va sobre el dato principal: las horas de paro.
+     Verde, rojo y ámbar solo dicen bueno, malo o pendiente. Sin sombras, sin degradados, cifras tabulares. */
   :root {
-    /* paleta de acento + neutros azul pizarra */
-    --b-purple: #7a4fa3; --b-orange: #f47b20; --b-green: #78b543; --b-blue: #2ba3dd; --b-yellow: #ffc20e;
-    --band: #2d3e4a; --on-band: #ffffff;
-    --bg: #edf0f3; --panel: #ffffff; --ink: #1f2d36; --muted: #52636e; --line: #d3dae0;
-    --accent: #c9560b; --on-accent: #ffffff; --bar-mute: #b8c3cb; --sel: #e1e7ec; --cell0: #f1f4f7;
-    --ok: #17794a; --bad: #b3261e; --warn: #8a5a00; --focus: #0b5cad;
-    --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
-    --f-body: "Barlow", system-ui, sans-serif;
-    --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --bg: #f2f4f7; --panel: #ffffff; --raised: #e8ebef; --ink: #0a0a0a; --muted: #5a6068;
+    --line: #e2e5e9; --rule: #eef0f3; --control: #cdd2d8;
+    --accent: #1d5fbf; --on-accent: #ffffff; --bar-mute: #b9bfc7; --sel: #e8ebef; --cell0: #f2f4f7;
+    --ok: #247b50; --bad: #c4242a; --warn: #92400e; --focus: #1d5fbf;
+    --p-ok-bg: #dcfae5; --p-ok-ink: #04250e; --p-bad-bg: #ffedea; --p-bad-ink: #831c1e;
+    --p-warn-bg: #fff6d6; --p-warn-ink: #7a3a06; --p-flat-bg: #eceef1; --p-flat-ink: #3d4249;
+    --font: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --band: #1b2933; --bg: #0d1418; --panel: #151e24; --ink: #e8eef2; --muted: #8fa1ad; --line: #26333b;
-      --accent: #f47b20; --on-accent: #1a0d03; --bar-mute: #3b4953; --sel: #1f2c34; --cell0: #1a252c;
-      --ok: #4cc38a; --bad: #ff7b72; --warn: #e3b341; --focus: #6cb6ff; color-scheme: dark;
+      --bg: #000000; --panel: #111111; --raised: #222222; --ink: #ffffff; --muted: #b4b4b4;
+      --line: #262626; --rule: #1c1c1c; --control: #444444;
+      --accent: #6ea8ff; --on-accent: #001430; --bar-mute: #4d4d4d; --sel: #222222; --cell0: #1a1a1a;
+      --ok: #3fc07a; --bad: #e5566f; --warn: #e3b341; --focus: #6ea8ff;
+      --p-ok-bg: #172a1d; --p-ok-ink: #3fc07a; --p-bad-bg: #2c1a20; --p-bad-ink: #f08a9c;
+      --p-warn-bg: #2a2210; --p-warn-ink: #e3b341; --p-flat-bg: #222222; --p-flat-ink: #b4b4b4; color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --band: #1b2933; --bg: #0d1418; --panel: #151e24; --ink: #e8eef2; --muted: #8fa1ad; --line: #26333b;
-    --accent: #f47b20; --on-accent: #1a0d03; --bar-mute: #3b4953; --sel: #1f2c34; --cell0: #1a252c;
-    --ok: #4cc38a; --bad: #ff7b72; --warn: #e3b341; --focus: #6cb6ff; color-scheme: dark;
+    --bg: #000000; --panel: #111111; --raised: #222222; --ink: #ffffff; --muted: #b4b4b4;
+    --line: #262626; --rule: #1c1c1c; --control: #444444;
+    --accent: #6ea8ff; --on-accent: #001430; --bar-mute: #4d4d4d; --sel: #222222; --cell0: #1a1a1a;
+    --ok: #3fc07a; --bad: #e5566f; --warn: #e3b341; --focus: #6ea8ff;
+    --p-ok-bg: #172a1d; --p-ok-ink: #3fc07a; --p-bad-bg: #2c1a20; --p-bad-ink: #f08a9c;
+    --p-warn-bg: #2a2210; --p-warn-ink: #e3b341; --p-flat-bg: #222222; --p-flat-ink: #b4b4b4; color-scheme: dark;
   }
   * { box-sizing: border-box; }
   body {
-    background: var(--bg); color: var(--ink); font: 400 15px/1.45 var(--f-body);
-    padding-block: 20px 48px;
-    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/20px var(--font);
+    padding-block: 0 48px;
+    padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
   }
-  .pz { position: relative; max-width: 1180px; margin: 0 auto; }
-  h1, h2, h3 { font-family: var(--f-display); font-weight: 600; letter-spacing: .01em; margin: 0; text-wrap: balance; }
-  h1 { font-size: 34px; line-height: 1.05; }
-  h2 { font-size: 22px; }
-  h3 { font-size: 17px; }
-  .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .pz { position: relative; max-width: 1200px; margin: 0 auto; }
+  h1, h2, h3 { margin: 0; font-weight: 600; }
+  h1 { font-size: 24px; line-height: 30px; font-weight: 700; letter-spacing: -.01em; }
+  h2 { font-size: 16px; line-height: 22px; }
+  h3 { font-size: 14px; }
+  .num, td.n, th.n { font-variant-numeric: tabular-nums; }
   .muted { color: var(--muted); }
-  .small { font-size: 12.5px; }
+  .small { font-size: 12px; line-height: 16px; }
   button, input, select { font: inherit; color: inherit; }
-  button:focus-visible, input:focus-visible, select:focus-visible, .pick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; margin-bottom: 14px; padding: 14px 18px; border-radius: 10px; background: var(--band); color: var(--on-band); border-bottom: 4px solid var(--b-orange); }
-  .top h1 { color: var(--on-band); font-size: 28px; }
-  .top p { margin: 2px 0 0; color: rgba(255,255,255,.8); font-size: 14px; }
-  .top-act { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; color: rgba(255,255,255,.8); }
-  .top .btn.ghost { color: var(--on-band); border-color: rgba(255,255,255,.5); }
-  .top .btn.ghost:hover { background: rgba(255,255,255,.12); }
-  .top button:focus-visible { outline-color: #fff; }
-  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--lc); margin-right: 7px; vertical-align: 0; }
-  .btn { background: var(--ink); color: var(--bg); border: 0; padding: 9px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  /* barra superior: nombre del tablero, sello de datos y carga */
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 24px; min-height: 48px; padding: 8px 0; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+  .brand svg { display: block; }
+  .top-act { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+  .btn { background: var(--ink); color: var(--panel); border: 0; height: 32px; padding: 0 12px; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; white-space: nowrap; }
+  .btn.ghost { background: var(--panel); color: var(--ink); border: 1px solid var(--control); }
+  .btn.ghost:hover { background: var(--rule); }
 
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
-  .panel > header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 12px; }
-  .panel > header p { margin: 0; color: var(--muted); font-size: 13px; }
-  section.block { margin-top: 18px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; min-width: 0; }
+  .panel > header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; margin-bottom: 16px; }
+  .panel > header p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 18px; }
+  section.block { margin-top: 12px; }
 
-  /* zona de carga */
-  .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 28px 20px; text-align: center; background: var(--panel); transition: border-color .15s, background .15s; }
+  /* zona de carga (solo administrador) */
+  .drop { border: 1px dashed var(--control); border-radius: 8px; padding: 28px 20px; text-align: center; background: var(--panel); margin-bottom: 12px; }
   .drop.over { border-color: var(--accent); background: var(--sel); }
-  .drop.compact { padding: 10px 14px; text-align: left; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-  .drop h2 { margin-bottom: 6px; }
-  .drop ol { text-align: left; max-width: 52ch; margin: 14px auto 0; padding-left: 20px; color: var(--muted); }
-  .files { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; text-align: left; font-size: 13.5px; overflow-x: auto; }
-  .compact .files { margin: 4px 0 0; flex-basis: 100%; }
-  .files li { display: grid; gap: 6px; justify-items: start; }
-  .fh { font-weight: 600; overflow-wrap: anywhere; }
-  .lt { display: grid; grid-template-columns: repeat(var(--cols), auto); gap: 3px 22px; justify-content: start; align-items: baseline; }
-  .lt .lh { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 3px; white-space: nowrap; }
-  .lt .ln { font-weight: 600; white-space: nowrap; }
-  .lt .dt { font-family: var(--f-mono); white-space: nowrap; }
+  .drop.compact { padding: 12px 20px; text-align: left; }
+  .drop h2 { margin-bottom: 4px; }
+  .drop ol { text-align: left; max-width: 60ch; margin: 14px auto 0; padding-left: 20px; color: var(--muted); }
+  .files { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; text-align: left; font-size: 13px; overflow-x: auto; }
+  .compact .files { margin: 0; }
+  .files li { display: grid; gap: 4px; justify-items: start; }
+  .fh { font-weight: 500; overflow-wrap: anywhere; }
+  .lt { display: grid; grid-template-columns: repeat(var(--cols), auto); gap: 2px 24px; justify-content: start; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .lt .lh { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .lt .ln { font-weight: 500; white-space: nowrap; }
+  .lt .dt { white-space: nowrap; }
   .lt .warn { color: var(--warn); }
   .files .err { color: var(--bad); }
   .ok-mark { color: var(--ok); font-weight: 600; }
-  .priv { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+  .priv { font-size: 12px; color: var(--muted); margin-top: 10px; }
 
-  /* controles */
-  .controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-top: 16px; padding: 8px 0; }
-  @media (min-width: 900px) and (min-height: 620px) { .controls { position: sticky; top: 0; z-index: 10; background: var(--bg); box-shadow: 0 1px 0 var(--line); } }
+  /* título: de qué línea se habla y el hallazgo del periodo */
+  .title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px; padding: 20px 0 16px; }
+  .title > div { min-width: 0; flex: 1 1 32rem; }
+  .title .scope { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .finding { margin: 10px 0 0; font-size: 15px; line-height: 22px; max-width: 86ch; }
+  .finding b { font-weight: 600; }
+  .finding .go { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--control); text-underline-offset: 3px; }
+  .finding .go:hover { text-decoration-color: var(--ink); }
+
+  /* filtros */
+  .controls { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; padding: 8px 0 12px; }
+  @media (min-width: 900px) and (min-height: 620px) { .controls { position: sticky; top: 0; z-index: 10; background: var(--bg); } }
   .ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-  .ctl > span { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); flex-wrap: wrap; }
-  .seg button { background: transparent; border: 0; padding: 7px 12px; cursor: pointer; border-right: 1px solid var(--line); }
+  .ctl > span { font-size: 13px; color: var(--muted); }
+  .seg { display: inline-flex; border: 1px solid var(--control); border-radius: 6px; overflow: hidden; background: var(--panel); flex-wrap: wrap; }
+  .seg button { background: transparent; border: 0; height: 30px; padding: 0 12px; cursor: pointer; border-right: 1px solid var(--line); font-size: 13px; color: var(--muted); }
   .seg button:last-child { border-right: 0; }
-  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); font-weight: 600; }
-  input[type="date"] { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
-  .notice { margin-top: 12px; padding: 8px 12px; border-left: 3px solid var(--warn); background: var(--panel); border-radius: 0 6px 6px 0; font-size: 13.5px; }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--raised); color: var(--ink); font-weight: 500; }
+  input[type="date"] { background: var(--panel); border: 1px solid var(--control); border-radius: 6px; height: 32px; padding: 0 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .notice { margin-bottom: 12px; padding: 8px 12px; background: var(--p-warn-bg); color: var(--p-warn-ink); border-radius: 6px; font-size: 13px; }
 
-  /* tarjetas por línea */
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 12px; margin-top: 8px; }
-  .kpi { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px 14px; cursor: pointer; display: grid; gap: 8px; min-width: 0; box-shadow: inset 0 5px 0 var(--lc); }
-  .kpi[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink), inset 0 5px 0 var(--lc); }
-  .kpi .nm { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .kpi .big { font: 500 38px/1 var(--f-mono); letter-spacing: -.02em; }
-  .kpi .row { display: flex; justify-content: space-between; gap: 8px; font-size: 13.5px; border-top: 1px solid var(--line); padding-top: 6px; }
-  .kpi { gap: 6px; }
+  /* cifras: las líneas son pestañas con su disponibilidad; debajo, el detalle de la elegida */
+  .kp { padding: 0; overflow: hidden; }
+  .kp-lines { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); }
+  .kp-line { text-align: left; background: transparent; border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 16px 20px 14px; cursor: pointer; display: grid; gap: 2px; min-width: 0; box-shadow: inset 0 2px 0 transparent; }
+  .kp-line:last-child { border-right: 0; }
+  .kp-line:hover { background: var(--rule); }
+  .kp-line[aria-pressed="true"] { box-shadow: inset 0 2px 0 var(--ink); background: var(--panel); }
+  .kp-line .nm { font-size: 13px; color: var(--muted); }
+  .kp-line[aria-pressed="true"] .nm { color: var(--ink); font-weight: 600; }
+  .kp-line .v { font-size: 30px; line-height: 36px; font-weight: 500; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .kp-line .s { font-size: 12px; line-height: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .kp-det { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .kp-det > div { padding: 14px 20px 16px; border-right: 1px solid var(--line); display: grid; gap: 2px; align-content: start; min-width: 0; }
+  .kp-det > div:last-child { border-right: 0; }
+  .kp-det .k { font-size: 13px; color: var(--muted); }
+  .kp-det .v { font-size: 20px; line-height: 26px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .kp-det .v small { font-size: 13px; font-weight: 400; color: var(--muted); }
+  .kp-det .d { font-size: 12px; line-height: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .kp-cap { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
   .delta.good { color: var(--ok); } .delta.bad { color: var(--bad); } .delta.flat { color: var(--muted); }
 
-  /* barras por día */
-  .bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 14px 20px; }
-  .bars h3 { font-size: 15px; margin-bottom: 2px; display: flex; justify-content: space-between; gap: 8px; }
+  /* pestañas */
+  .tabs { display: flex; gap: 24px; margin-top: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 8px 0 10px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+  [role="tabpanel"] { margin-top: 12px; }
+  .split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; align-items: start; }
+  @media (max-width: 960px) { .split { grid-template-columns: minmax(0, 1fr); } }
+
+  /* Pareto: lista de barras con sus cifras en columnas */
+  .par { display: grid; }
+  .par .hd, .par .it { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(3rem, 1fr) 4.2rem 3.6rem 3.6rem 4.6rem; gap: 0 12px; align-items: center; }
+  .par .hd { font-size: 12px; color: var(--muted); padding: 0 8px 6px; }
+  .par .hd span:nth-child(n+3), .par .it .n { text-align: right; font-variant-numeric: tabular-nums; }
+  .par .it { min-height: 36px; padding: 6px 8px; border: 0; border-top: 1px solid var(--rule); background: transparent; text-align: left; width: 100%; }
+  .par button.it { cursor: pointer; }
+  .par button.it:hover { background: var(--rule); }
+  .par .it .nm { overflow-wrap: anywhere; line-height: 18px; }
+  .par .it.rest .nm, .par .it.rest .n { color: var(--muted); }
+  .par .it .h { font-weight: 500; }
+  .par .cut { display: flex; align-items: center; gap: 12px; padding: 4px 8px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule); }
+  .par .cut::after { content: ""; flex: 1; border-top: 1px dashed var(--control); }
+  .track { height: 8px; background: var(--cell0); border-radius: 2px; }
+  .fill { height: 100%; background: var(--accent); border-radius: 2px; min-width: 2px; }
+  .fill.ext { background: var(--bar-mute); }
+  .back { justify-self: start; margin-bottom: 8px; }
+  @media (max-width: 620px) {
+    .par .hd, .par .it { grid-template-columns: minmax(6rem, 9rem) minmax(2rem, 1fr) 4rem 3.2rem; }
+    .par .x { display: none; }
+  }
+
+  /* paros largos */
+  .long { display: grid; }
+  .long .l { display: grid; grid-template-columns: 4rem 6.2rem minmax(0, 1fr); gap: 2px 12px; align-items: baseline; padding: 10px 8px; border: 0; border-top: 1px solid var(--rule); background: transparent; text-align: left; width: 100%; }
+  .long .l:first-child { border-top: 0; padding-top: 0; }
+  .long button.l { cursor: pointer; }
+  .long button.l:hover { background: var(--rule); }
+  .long .l .dur { font-weight: 500; }
+  .long .l .nt { grid-column: 3; font-size: 13px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }
+  .long button.l .nt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .empty { color: var(--muted); font-size: 14px; padding: 4px 0; }
+
+  /* barras por periodo */
+  .bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 16px 24px; }
+  .bars h3 { margin-bottom: 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .bars h3 .cur { font-weight: 600; }
+  .bars h3 span:first-child { font-weight: 500; }
   .bars svg { display: block; width: 100%; height: auto; overflow: visible; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
-  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
   .sw.line { height: 2px; width: 14px; vertical-align: 3px; border-radius: 0; background: var(--ink); }
 
   /* detalle del día */
   .daynav { display: flex; align-items: center; gap: 8px; }
-  .daynav button { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; width: 34px; height: 32px; cursor: pointer; }
+  .daynav button { background: var(--panel); border: 1px solid var(--control); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; }
   .daynav button:disabled { opacity: .4; cursor: default; }
-  .daynav .when { font-family: var(--f-display); font-size: 20px; font-weight: 600; min-width: 11ch; text-align: center; text-transform: capitalize; }
-  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 10px; margin-bottom: 14px; }
-  .stat { border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; }
-  .stat b { display: block; font: 500 24px/1.2 var(--f-mono); }
-  .stat span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 18px 28px; }
-  .two h3 { margin-bottom: 8px; }
-  .hb { display: grid; gap: 9px; }
-  .hb .it { display: grid; gap: 3px; min-width: 0; }
-  .hb .lab { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+  .daynav .when { font-size: 14px; font-weight: 500; min-width: 15ch; text-align: center; font-variant-numeric: tabular-nums; }
+  .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 6px; margin-bottom: 20px; }
+  .stat { padding: 12px 16px; border-right: 1px solid var(--line); display: grid; gap: 2px; align-content: start; }
+  .stat:last-child { border-right: 0; }
+  .stat span { font-size: 13px; color: var(--muted); }
+  .stat b { font-size: 20px; line-height: 26px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  @media (max-width: 860px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat { border-bottom: 1px solid var(--line); } .stat:nth-child(2n) { border-right: 0; } .stat:nth-last-child(-n+2) { border-bottom: 0; } }
+  .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 20px 32px; }
+  .two h3 { margin-bottom: 10px; font-weight: 600; }
+  .hb { display: grid; gap: 12px; }
+  .hb .it { display: grid; gap: 4px; min-width: 0; }
+  .hb .lab { display: flex; justify-content: space-between; gap: 12px; }
   .hb .lab span:first-child { overflow-wrap: anywhere; }
-  .hb .track { height: 8px; background: var(--cell0); border-radius: 2px; }
-  .hb .fill { height: 100%; background: var(--accent); border-radius: 2px; min-width: 2px; }
-  .hb .fill.ext { background: var(--bar-mute); }
-  .hb .nt { font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
-  .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; color: var(--muted); margin-left: 6px; white-space: nowrap; }
-  .long { display: grid; gap: 8px; }
-  .long .l { display: grid; grid-template-columns: 4.6rem 6.4rem 1fr; gap: 4px 10px; align-items: baseline; font-size: 14px; }
-  .long .l .nt { grid-column: 3; font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
-  .empty { color: var(--muted); font-size: 14px; }
+  .hb .nt { font-size: 13px; line-height: 18px; color: var(--muted); overflow-wrap: anywhere; }
+  .tag { font-size: 12px; color: var(--muted); margin-left: 6px; white-space: nowrap; }
 
   /* mapa de calor */
   .scroll { overflow-x: auto; }
   .heat { display: grid; gap: 2px; min-width: 34rem; align-items: stretch; }
-  .heat .rl { font-size: 13px; padding-right: 8px; display: flex; align-items: center; overflow-wrap: anywhere; line-height: 1.2; }
-  .heat .cl { font: 400 11px/1.1 var(--f-mono); color: var(--muted); text-align: center; padding-bottom: 3px; }
-  .heat .cl.sel, .heat .c.sel { outline: 2px solid var(--ink); outline-offset: -1px; }
-  .heat .c { height: 28px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font: 400 11px/1 var(--f-mono); cursor: pointer; background: var(--cell0); border: 0; padding: 0; }
-  .heat .tot { font: 500 12px var(--f-mono); display: flex; align-items: center; justify-content: end; padding-left: 8px; }
+  .heat .rl { font-size: 13px; padding-right: 8px; display: flex; align-items: center; overflow-wrap: anywhere; line-height: 16px; }
+  .heat .cl { font-size: 11px; line-height: 14px; color: var(--muted); text-align: center; padding-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .heat .cl.sel { color: var(--ink); font-weight: 600; }
+  .heat .c.sel { outline: 2px solid var(--ink); outline-offset: -1px; }
+  .heat .c { height: 28px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; font-variant-numeric: tabular-nums; cursor: pointer; background: var(--cell0); border: 0; padding: 0; }
+  .heat .tot { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; display: flex; align-items: center; justify-content: end; padding-left: 8px; }
 
   /* tabla */
-  table { border-collapse: collapse; width: 100%; font-size: 14px; }
-  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--ink); padding: 6px 10px 6px 0; }
-  td { border-bottom: 1px solid var(--line); padding: 8px 10px 8px 0; vertical-align: top; }
-  td.n, th.n { text-align: right; font-family: var(--f-mono); white-space: nowrap; }
-  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap; }
-  .b-bad { color: var(--bad); } .b-warn { color: var(--warn); } .b-ok { color: var(--ok); } .b-flat { color: var(--muted); }
-  .nota { color: var(--muted); font-size: 12.5px; max-width: 44ch; overflow-wrap: anywhere; }
-  @media (max-width: 720px) { .hide-s { display: none; } h1 { font-size: 28px; } .kpi .big { font-size: 32px; } }
-
-  #tip { position: absolute; z-index: 20; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12.5px; box-shadow: 0 4px 14px rgba(0,0,0,.18); max-width: 260px; }
-  #tip b { font-family: var(--f-mono); font-weight: 500; }
-  @media (prefers-reduced-motion: no-preference) { .fill { transition: width .25s ease-out; } }
-  .foot { margin-top: 28px; text-align: center; }
-  .linklike { background: none; border: 0; padding: 4px 8px; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
-  #nodata { margin-top: 16px; color: var(--muted); }
-
-  /* lo importante */
-  .panel > header > div > p { margin: 0; color: var(--muted); font-size: 13px; }
-  .insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 10px; }
-  .ins { display: grid; gap: 3px; align-content: start; text-align: left; background: var(--cell0); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 12px; min-width: 0; }
-  button.ins { cursor: pointer; }
-  button.ins:hover, .pick:hover { background: var(--sel); }
-  .ins .k { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .ins b { font: 600 22px/1.15 var(--f-display); overflow-wrap: anywhere; }
-  .ins .d { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
-
-  /* pestañas */
-  .tabs { display: flex; gap: 4px; margin-top: 20px; border-bottom: 2px solid var(--line); overflow-x: auto; }
-  .tabs button { background: transparent; border: 0; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 9px 16px; cursor: pointer; font: 600 17px var(--f-display); letter-spacing: .02em; color: var(--muted); white-space: nowrap; }
-  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
-  [role="tabpanel"] { margin-top: 16px; }
-  .split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: 16px; align-items: start; }
-
-  /* filas que se pueden tocar */
-  .pick { background: transparent; border: 0; padding: 4px 6px; margin: -4px -6px; border-radius: 6px; text-align: left; cursor: pointer; width: calc(100% + 12px); }
-  .hb .it.pick { display: grid; }
-  .long .l .nt { grid-column: 3; }
-  .back { justify-self: start; padding-left: 0; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-size: 13px; cursor: pointer; white-space: nowrap; }
-  .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); font-weight: 600; }
-  .acts { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
-  .btn.ghost { padding: 6px 12px; font-size: 13.5px; }
-  tr.att td:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 10px; }
+  table { border-collapse: collapse; width: 100%; }
+  th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--line); padding: 0 16px 8px 0; white-space: nowrap; }
+  td { border-bottom: 1px solid var(--rule); padding: 12px 16px 12px 0; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th:last-child, td:last-child { padding-right: 0; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
   td b { font-weight: 600; }
+  .badge { display: inline-block; font-size: 12px; line-height: 20px; font-weight: 500; padding: 0 8px; border-radius: 4px; white-space: nowrap; }
+  .b-bad { background: var(--p-bad-bg); color: var(--p-bad-ink); } .b-warn { background: var(--p-warn-bg); color: var(--p-warn-ink); }
+  .b-ok { background: var(--p-ok-bg); color: var(--p-ok-ink); } .b-flat { background: var(--p-flat-bg); color: var(--p-flat-ink); }
+  .nota { color: var(--muted); font-size: 13px; line-height: 18px; max-width: 44ch; overflow-wrap: anywhere; }
+  .legend-txt { margin: 16px 0 0; font-size: 12px; line-height: 18px; color: var(--muted); max-width: 110ch; }
+  .legend-txt b { font-weight: 500; color: var(--ink); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--panel); border: 1px solid var(--control); border-radius: 6px; height: 30px; padding: 0 10px; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chip.on { background: var(--raised); color: var(--ink); font-weight: 500; }
+  .acts { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+
+  #tip { position: absolute; z-index: 20; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 12px; line-height: 18px; box-shadow: 0 4px 14px rgba(0,0,0,.14); max-width: 260px; font-variant-numeric: tabular-nums; }
+  #tip b { font-weight: 600; }
+  .foot { margin-top: 32px; text-align: center; }
+  .linklike { background: none; border: 0; padding: 4px 0; color: var(--muted); font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  #nodata { color: var(--muted); }
+
+  @media (max-width: 720px) {
+    body { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+    .hide-s { display: none; }
+    .panel { padding: 16px; } .kp { padding: 0; }
+    .kp-line { padding: 12px 12px 10px; } .kp-line .v { font-size: 24px; line-height: 30px; }
+    .kp-det { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kp-det > div { padding: 12px; border-bottom: 1px solid var(--line); }
+    .kp-det > div:nth-child(2n) { border-right: 0; }
+    .kp-det > div:last-child { grid-column: 1 / -1; border-bottom: 0; }
+    .long .l { grid-template-columns: 3.6rem minmax(0, 1fr); }
+    .long .l .what, .long .l .nt { grid-column: 1 / -1; }
+  }
   @media print { .controls { position: static; } .drop, .foot, .top-act, .tabs, #btn-copy, #btn-csv { display: none !important; } [role="tabpanel"][hidden] { display: block !important; } body { background: #fff; } }
 
 </style>
 
 <div class="pz">
   <header class="top">
-    <div>
-      <h1>Tablero de paros</h1>
-      <p id="asof">Paros de líneas de producción a partir de los reportes de Atlas.</p>
-    </div>
-    <div class="top-act"><span class="small" id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
+    <div class="brand"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="8" width="7" height="4" fill="currentColor"/><rect x="12" y="8" width="7" height="4" fill="currentColor"/><rect x="9" y="3" width="2" height="14" fill="var(--accent)"/></svg>Tablero de paros</div>
+    <div class="top-act"><span id="asof">Paros de líneas de producción a partir de los reportes de Atlas.</span><span id="cloud" role="status"></span><button class="btn ghost" id="btn-load" type="button">Cargar reportes</button></div>
   </header>
   <input type="file" id="file" accept=".xlsx,.xls" multiple hidden>
 
@@ -219,23 +272,19 @@
   <div class="panel" id="nodata" hidden>Cargando datos…</div>
 
   <div id="app" hidden>
+    <div class="title">
+      <div><h1 id="focus-title">Paros</h1><p class="scope" id="focus-sub"></p><p class="finding" id="focus-body"></p></div>
+      <button class="btn" id="btn-copy" type="button">Copiar resumen</button>
+    </div>
     <div class="controls" id="controls">
-      <div class="ctl"><span>Línea</span><div class="seg" id="seg-line" role="group" aria-label="Línea"></div></div>
       <div class="ctl"><span>Periodo</span><input type="date" id="d-from" aria-label="Desde"><span aria-hidden="true">a</span><input type="date" id="d-to" aria-label="Hasta"><div class="seg" id="seg-pre" role="group" aria-label="Atajos de periodo"></div></div>
       <div class="ctl"><span>Tipo de paro</span><div class="seg" id="seg-type" role="group" aria-label="Tipo de paro"></div></div>
       <div class="ctl" id="chip-comp" hidden></div>
     </div>
     <div class="notice" id="notice" hidden></div>
 
-    <div class="kpis" id="kpis"></div>
-
-    <section class="block panel focus">
-      <header>
-        <div><h2 id="focus-title">Lo importante</h2><p id="focus-sub"></p></div>
-        <button class="btn ghost" id="btn-copy" type="button">Copiar resumen</button>
-      </header>
-      <div class="insights" id="focus-body"></div>
-    </section>
+    <section class="panel kp" id="kpis" aria-label="Cifras por línea"></section>
+    <p class="kp-cap" id="kp-cap"></p>
 
     <div class="tabs" id="tabs" role="tablist" aria-label="Vistas"></div>
 
@@ -243,7 +292,7 @@
       <div class="split">
         <section class="panel">
           <header><h2 id="par-title">Pareto por equipo</h2><p id="par-sub"></p></header>
-          <div class="hb" id="par"></div>
+          <div class="par" id="par"></div>
         </section>
         <section class="panel">
           <header><h2>Paros más largos</h2><p id="lar-sub"></p></header>
@@ -256,7 +305,7 @@
           <div class="acts"><div class="chips" id="cmp-flt" role="group" aria-label="Filtrar por estado"></div><button class="btn ghost" id="btn-csv" type="button">Descargar CSV</button></div>
         </header>
         <div class="scroll"><table id="cmp"></table></div>
-        <p class="small muted" style="margin:10px 0 0"><b>Nuevo</b> o <b>Resuelto</b>: casi no hay horas en uno de los dos periodos (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b>: cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b>: ocurre en la mitad de los días o más. El resto es <b>Intermitente</b>. Requieren atención: Nuevo, Empeora y Persiste.</p>
+        <p class="legend-txt"><b>Nuevo</b> o <b>Resuelto</b>: casi no hay horas en uno de los dos periodos (menos de 0,25 h por cada 7 días). <b>Empeora</b> o <b>Mejora</b>: cambia más de 30% (o 40%) y al menos 0,75 h por cada 7 días. <b>Persiste</b>: ocurre en la mitad de los días o más. El resto es <b>Intermitente</b>. Requieren atención: Nuevo, Empeora y Persiste.</p>
       </section>
     </div>
 
@@ -700,7 +749,7 @@ if (typeof module !== 'undefined') module.exports = Core;
         if (z.length > 240000) throw new Error('archivo muy grande');
         await cloud.db.doc('lines/' + slug(n)).set({ name: n, cargado: store.lines[n].cargado, hasta: store.lines[n].hasta, z });
       }
-      cloudStatus('Guardado en línea ✓');
+      cloudStatus('Guardado en línea');
     } catch (e) { cloudStatus('No se pudo guardar en línea (' + (e && (e.code || e.message) || 'error') + ')', true); }
   }
   async function cloudStart() {
@@ -727,7 +776,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       else if (!edit.on) {
         cloudStatus(names().length ? '' : 'Aún no hay datos publicados.');
         if (!names().length) $('nodata').textContent = 'Aún no hay datos publicados.';
-      } else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
+      } else cloudStatus(remote.size ? 'Sincronizado en línea' : 'Aún no hay datos en línea: carga tus reportes');
     }, () => cloudStatus('Sin conexión a la base en línea', true));
   }
 
@@ -796,7 +845,7 @@ if (typeof module !== 'undefined') module.exports = Core;
           loadedNames.add(n);
         }
         const anyGap = names.some((n) => gaps[n]);
-        li.replaceChildren(el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), f.name),
+        li.replaceChildren(el('div', { class: 'fh' }, f.name),
           lineGrid(anyGap ? ['Línea', 'Cargado ahora', 'Total guardado', 'Aviso'] : ['Línea', 'Cargado ahora', 'Total guardado'],
             names.map((n) => [n, rng(out[n].desde, out[n].hasta), rng(store.lines[n].desde, store.lines[n].hasta)].concat(anyGap ? [gaps[n] ? { w: 'Faltan los días ' + gaps[n] } : ''] : []))));
         any = true;
@@ -828,8 +877,6 @@ if (typeof module !== 'undefined') module.exports = Core;
   const isInternal = () => ui.ty.em && ui.ty.op && !ui.ty.ext;
   const dispLabel = () => (isInternal() ? 'Disponibilidad interna' : 'Disponibilidad (tipos elegidos)');
   const nDays = () => Core.span(ui.s, ui.e);
-  const LPAL = ['var(--b-blue)', 'var(--b-green)', 'var(--b-purple)', 'var(--b-yellow)', 'var(--b-orange)'];
-  const lineColor = (n) => LPAL[Math.max(0, names().indexOf(n)) % LPAL.length];
   const KEEP = /^(L2 Krones|Zegla 30|Zegla 40)$/i; /* solo las líneas de interés */
   const names = () => Object.keys(store.lines).filter((n) => KEEP.test(n)).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
   const maxDate = () => names().map((n) => store.lines[n].hasta).sort().pop();
@@ -859,7 +906,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     if (ui.s > ui.e) ui.s = ui.e;
     if (fromLoad || !ui.day) ui.day = defDay(ui.e);
     if (!$('files').children.length) {
-      $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
+      $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
     }
     $('app').hidden = false;
     refreshNoData();
@@ -881,8 +928,6 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
 
   function renderControls() {
-    const sl = $('seg-line'); sl.replaceChildren();
-    for (const n of names()) sl.append(el('button', { type: 'button', 'aria-pressed': String(n === ui.line), onclick: () => setLine(n) }, el('i', { class: 'dot', style: '--lc:' + lineColor(n) }), n));
     const mx = maxDate(), mn = minDate();
     const a = $('d-from'), b = $('d-to');
     a.min = b.min = mn; a.max = b.max = mx;
@@ -896,7 +941,7 @@ if (typeof module !== 'undefined') module.exports = Core;
       sp.append(el('button', { type: 'button', 'aria-pressed': String(ui.s === f && ui.e === mx), text: lab, onclick: () => setPeriod(f, mx) }));
     }
     const ch = $('chip-comp'); ch.replaceChildren(); ch.hidden = !ui.comp;
-    if (ui.comp) ch.append(el('span', { text: 'Equipo' }), el('button', { type: 'button', class: 'chip on', 'aria-label': 'Quitar filtro de equipo ' + ui.comp, onclick: () => { ui.comp = null; renderAll(); } }, ui.comp, ' ✕'));
+    if (ui.comp) ch.append(el('span', { text: 'Equipo' }), el('button', { type: 'button', class: 'chip on', 'aria-label': 'Quitar filtro de equipo ' + ui.comp, onclick: () => { ui.comp = null; renderAll(); } }, ui.comp, ' ×'));
     const st = $('seg-type'); st.replaceChildren();
     for (const k of ['em', 'op', 'ext']) {
       st.append(el('button', { type: 'button', 'aria-pressed': String(!!ui.ty[k]), text: TB[k], onclick: () => {
@@ -931,30 +976,43 @@ if (typeof module !== 'undefined') module.exports = Core;
   function deltaEl(diff, goodWhenUp, unit, digits) {
     if (diff == null || !isFinite(diff)) return el('span', { class: 'delta flat', text: 'sin comparación' });
     const abs = Math.abs(diff);
-    if (abs < 0.05) return el('span', { class: 'delta flat', text: '= sin cambio' });
+    if (abs < 0.05) return el('span', { class: 'delta flat', text: 'sin cambio' });
     const up = diff > 0;
-    return el('span', { class: 'delta ' + (up === goodWhenUp ? 'good' : 'bad'), text: (up ? '▲ ' : '▼ ') + new Intl.NumberFormat('es', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(abs) + unit });
+    return el('span', { class: 'delta ' + (up === goodWhenUp ? 'good' : 'bad'), text: (up ? '+' : '−') + new Intl.NumberFormat('es', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(abs) + unit });
   }
   function renderKpis() {
     const host = $('kpis'); host.replaceChildren();
     const pr = Core.prevRange(ui.s, ui.e);
     const n = nDays();
-    for (const name of names()) {
+    const ns = names();
+    const lines = el('div', { class: 'kp-lines', style: '--n:' + ns.length, role: 'group', 'aria-label': 'Línea' });
+    let anyPrev = false;
+    for (const name of ns) {
       const a = store.lines[name];
       const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
-      const r = Core.reliability(a, ui.s, ui.e, ui.ty), rp = Core.reliability(a, pr.s, pr.e, ui.ty);
-      const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length;
       const noPrev = pr.e < a.desde;
-      const row = (lab, val, d) => el('div', { class: 'row' }, el('span', { text: lab }), el('span', { class: 'num' }, val, ' ', noPrev ? null : d));
-      host.append(el('button', { type: 'button', class: 'kpi', style: '--lc:' + lineColor(name), 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
-        el('div', { class: 'nm' }, el('h3', { text: name }), el('span', { class: 'muted small', text: rangeText(ui.s, ui.e) })),
-        el('div', {}, el('div', { class: 'muted small', text: dispLabel() }), el('div', { class: 'big', text: w.disp == null ? '—' : fP(w.disp) }),
-          el('div', { class: 'small' }, noPrev ? el('span', { class: 'muted', text: 'sin periodo previo para comparar' }) : [deltaEl(w.disp != null && p.disp != null ? (w.disp - p.disp) * 100 : null, true, ' pts', 1), el('span', { class: 'muted', text: ' vs ' + n + (n === 1 ? ' día' : ' días') + ' previos' })])),
-        row('Horas de paro', fH(w.sel), deltaEl(w.sel - p.sel, false, ' h', 1)),
-        row('Eventos · de 30 min o más', nf0.format(r.reg) + ' · ' + nf0.format(largos), deltaEl(r.reg - rp.reg, false, '', 0)),
-        row('Duración media (MTTR)', r.mttr == null ? '—' : fDur(r.mttr), r.mttr != null && rp.mttr != null ? deltaEl(r.mttr - rp.mttr, false, ' min', 0) : null),
-        row('Tiempo entre paros (MTBF)', r.mtbf == null ? '—' : fH(r.mtbf), r.mtbf != null && rp.mtbf != null ? deltaEl(r.mtbf - rp.mtbf, true, ' h', 1) : null)));
+      if (!noPrev) anyPrev = true;
+      lines.append(el('button', { type: 'button', class: 'kp-line', 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
+        el('span', { class: 'nm', text: name }),
+        el('span', { class: 'v', text: w.disp == null ? '—' : fP(w.disp) }),
+        el('span', { class: 's' }, fH(w.sel) + ' de paro', noPrev || w.disp == null || p.disp == null ? null : [' · ', deltaEl((w.disp - p.disp) * 100, true, ' pts', 1)])));
     }
+    host.append(lines);
+    const a = store.lines[ui.line];
+    const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
+    const r = Core.reliability(a, ui.s, ui.e, ui.ty), rp = Core.reliability(a, pr.s, pr.e, ui.ty);
+    const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length, largosP = Core.largosIn(a, pr.s, pr.e, ui.ty).length;
+    const noPrev = pr.e < a.desde;
+    const cell = (k, v, d) => el('div', {}, el('span', { class: 'k', text: k }), el('span', { class: 'v' }, v), noPrev ? null : el('span', { class: 'd' }, d || '—'));
+    const unit = (txt) => { const m = /^(.*?)(\s(?:h|min))$/.exec(txt); return m ? [m[1], el('small', { text: m[2] })] : txt; };
+    host.append(el('div', { class: 'kp-det' },
+      cell('Horas de paro', unit(fH(w.sel)), deltaEl(w.sel - p.sel, false, ' h', 1)),
+      cell('Eventos', nf0.format(r.reg), deltaEl(r.reg - rp.reg, false, '', 0)),
+      cell('Paros de 30 min o más', nf0.format(largos), deltaEl(largos - largosP, false, '', 0)),
+      cell('Duración media (MTTR)', r.mttr == null ? '—' : unit(fDur(r.mttr)), r.mttr != null && rp.mttr != null ? deltaEl(r.mttr - rp.mttr, false, ' min', 0) : null),
+      cell('Tiempo entre paros (MTBF)', r.mtbf == null ? '—' : unit(fH(r.mtbf)), r.mtbf != null && rp.mtbf != null ? deltaEl(r.mtbf - rp.mtbf, true, ' h', 1) : null)));
+    $('kp-cap').textContent = 'La cifra grande es la ' + dispLabel().toLowerCase() + ' de cada línea en el periodo. ' +
+      (anyPrev ? 'Los cambios comparan con los ' + n + (n === 1 ? ' día previo' : ' días previos') + ' (' + rangeText(pr.s, pr.e) + ').' : 'Aún no hay un periodo previo cargado para comparar.');
   }
 
   /* ---------- lo importante de la línea ---------- */
@@ -971,20 +1029,19 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function renderFocus() {
     const f = focusData();
-    $('focus-title').replaceChildren('Lo importante · ', el('i', { class: 'dot', style: '--lc:' + lineColor(ui.line) }), ui.line);
+    $('focus-title').textContent = 'Paros de ' + ui.line;
     $('focus-sub').textContent = rangeText(ui.s, ui.e) + ' · paro ' + tyText();
     const host = $('focus-body'); host.replaceChildren();
-    if (!f.par.rows.length) { host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
-    const tile = (k, big, txt, onclick) => el(onclick ? 'button' : 'div', Object.assign({ class: 'ins' }, onclick ? { type: 'button', onclick } : {}), el('span', { class: 'k', text: k }), el('b', { text: big }), el('span', { class: 'd', text: txt }));
-    const top = f.par.rows[0];
-    host.append(tile('Dónde se va el tiempo', nf0.format(f.vital[f.vital.length - 1].cum * 100) + '% en ' + f.vital.length + (f.vital.length === 1 ? ' equipo' : ' equipos'),
-      f.vital.slice(0, 3).map((r) => r.k + ' ' + fH(r.h)).join(' · ') + (f.vital.length > 3 ? ' · …' : ''), () => { ui.tab = 'pri'; ui.comp = null; renderAll(); }));
-    host.append(tile('Mayor contribuyente', top.k, fH(top.h) + ' (' + nf0.format(top.pct * 100) + '% del paro) en ' + ev(top.reg), () => { ui.tab = 'pri'; ui.comp = top.k; renderAll(); }));
-    const a0 = f.att[0];
-    host.append(tile('Requieren atención', nf0.format(f.att.length) + (f.att.length === 1 ? ' causa' : ' causas'),
-      a0 ? a0.comp + ' · ' + a0.causa + ' (' + a0.estado.toLowerCase() + ', ' + fH(a0.h) + ')' : 'Nada nuevo, que empeore o que persista.', () => { ui.tab = 'pri'; ui.flt = 'att'; renderAll(); }));
+    if (!f.par.rows.length) { host.append('Sin paros de este tipo en el periodo.'); return; }
+    const go = (txt, onclick) => el('button', { type: 'button', class: 'go', text: txt, onclick });
+    const toTable = (flt) => { ui.tab = 'pri'; ui.flt = flt; renderAll(); $('cmp').scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+    const top = f.par.rows[0], nv = f.vital.length;
+    host.append(el('b', { text: top.k }), ' concentra el ' + nf0.format(top.pct * 100) + '% del paro: ' + fH(top.h) + ' en ' + ev(top.reg) + '. ');
+    if (nv > 1) host.append(nv + ' equipos explican el ' + nf0.format(f.vital[nv - 1].cum * 100) + '%. ');
+    if (f.att.length) host.append(go(nf0.format(f.att.length) + (f.att.length === 1 ? ' causa requiere atención' : ' causas requieren atención'), () => toTable('att')), '. ');
+    else host.append('Ninguna causa nueva, que empeore o que persista. ');
     const l0 = f.largos[0];
-    host.append(tile('Paro más largo', l0 ? fDur(l0.min) : '—', l0 ? l0.comp + ' · ' + dShort.format(D(l0.f)) + (l0.hora ? ' ' + l0.hora : '') : 'Ningún paro de 30 min o más.', l0 ? () => goDay(l0.f) : null));
+    if (l0) host.append('El paro más largo duró ', go(fDur(l0.min) + ' (' + l0.comp + ', ' + dShort.format(D(l0.f)) + (l0.hora ? ' ' + l0.hora : '') + ')', () => goDay(l0.f)), '.');
   }
   function summaryText() {
     const f = focusData(), a = f.a;
@@ -1012,7 +1069,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {
       try { const ta = el('textarea', { style: 'position:fixed;opacity:0' }); ta.value = txt; document.body.append(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch (e2) { ok = false; }
     }
-    const old = btn.textContent; btn.textContent = ok ? 'Copiado ✓' : 'No se pudo copiar';
+    const old = btn.textContent; btn.textContent = ok ? 'Copiado' : 'No se pudo copiar';
     setTimeout(() => { btn.textContent = old; }, 1800);
   }
   function downloadCsv() {
@@ -1046,18 +1103,21 @@ if (typeof module !== 'undefined') module.exports = Core;
     const sub = $('par-sub');
     if (!par.rows.length) { sub.textContent = ''; host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
     let nv = 0; for (const r of par.rows) { nv++; if (r.cum >= 0.8) break; }
-    sub.textContent = nv + ' de ' + par.rows.length + (ui.comp ? ' causas' : ' equipos') + ' explican el ' + nf0.format(par.rows[nv - 1].cum * 100) + '% de ' + fH(par.tot) + '.' + (ui.comp ? '' : ' Toca un equipo para ver sus causas.');
+    sub.textContent = fH(par.tot) + ' de paro en ' + par.rows.length + (ui.comp ? (par.rows.length === 1 ? ' causa.' : ' causas.') : (par.rows.length === 1 ? ' equipo.' : ' equipos.') + ' Toca un equipo para ver sus causas.');
     if (ui.comp) host.append(el('button', { type: 'button', class: 'linklike back', text: '← Todos los equipos', onclick: () => { ui.comp = null; renderAll(); } }));
     const mx = par.rows[0].h;
-    const noPrev = Core.prevRange(ui.s, ui.e).e < a.desde;
+    host.append(el('div', { class: 'hd' }, el('span', { text: ui.comp ? 'Causa' : 'Equipo' }), el('span', {}), el('span', { text: 'Horas' }), el('span', { text: '% paro' }), el('span', { class: 'x', text: 'Acum.' }), el('span', { class: 'x', text: 'Eventos' })));
     par.rows.slice(0, 12).forEach((r, i) => {
       const kids = [
-        el('div', { class: 'lab' }, el('span', { text: r.k }), el('span', { class: 'num' }, fH(r.h), ' ', noPrev ? null : deltaEl(r.h - r.hp, false, ' h', 1))),
+        el('span', { class: 'nm', text: r.k }),
         el('div', { class: 'track' }, el('div', { class: 'fill' + (i < nv ? '' : ' ext'), style: 'width:' + (100 * r.h / mx).toFixed(1) + '%' })),
-        el('div', { class: 'nt num', text: nf0.format(r.pct * 100) + '% del paro · acumulado ' + nf0.format(r.cum * 100) + '% · ' + ev(r.reg) + ' · ' + r.dias + (r.dias === 1 ? ' día' : ' días') })];
-      host.append(ui.comp ? el('div', { class: 'it' }, kids) : el('button', { type: 'button', class: 'it pick', onclick: () => { ui.comp = r.k; renderAll(); } }, kids));
+        el('span', { class: 'n h', text: nf1.format(r.h) }), el('span', { class: 'n', text: nf0.format(r.pct * 100) + '%' }),
+        el('span', { class: 'n x', text: nf0.format(r.cum * 100) + '%' }), el('span', { class: 'n x', text: nf0.format(r.reg) })];
+      const cls = 'it' + (i < nv ? '' : ' rest');
+      host.append(ui.comp ? el('div', { class: cls }, kids) : el('button', { type: 'button', class: cls + ' pick', 'aria-label': r.k + ': ' + fH(r.h) + ', ver sus causas', onclick: () => { ui.comp = r.k; renderAll(); } }, kids));
+      if (i === nv - 1 && par.rows.length > nv) host.append(el('div', { class: 'cut', text: 'Hasta aquí, el ' + nf0.format(r.cum * 100) + '% del paro' }));
     });
-    if (par.rows.length > 12) host.append(el('div', { class: 'small muted', text: 'Y ' + (par.rows.length - 12) + ' más con menos horas.' }));
+    if (par.rows.length > 12) host.append(el('div', { class: 'small muted', style: 'padding:8px', text: 'Y ' + (par.rows.length - 12) + ' más con menos horas.' }));
   }
 
   /* ---------- paros más largos del periodo ---------- */
@@ -1068,7 +1128,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     const host = $('lar'); host.replaceChildren();
     if (!list.length) { host.append(el('div', { class: 'empty', text: 'No hubo paros de 30 min o más en el periodo.' })); return; }
     for (const x of list.slice(0, 8)) host.append(el('button', { type: 'button', class: 'l pick', onclick: () => goDay(x.f) },
-      el('span', { class: 'num', text: fDur(x.min) }), el('span', { class: 'num muted', text: dShort.format(D(x.f)) + (x.hora ? ' ' + x.hora : '') }), el('span', { text: x.comp + ' · ' + x.causa }),
+      el('span', { class: 'num dur', text: fDur(x.min) }), el('span', { class: 'num muted', text: dShort.format(D(x.f)) + (x.hora ? ' ' + x.hora : '') }), el('span', { class: 'what', text: x.comp + ' · ' + x.causa }),
       el('span', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
   }
 
@@ -1105,7 +1165,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (const s of sets) {
       const box = el('div', {});
       const tot = Core.sumRange(s.a, ui.s, ui.e, ui.ty);
-      box.append(el('h3', {}, el('span', {}, el('i', { class: 'dot', style: '--lc:' + lineColor(s.n) }), s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
+      box.append(el('h3', {}, el('span', { class: s.n === ui.line ? 'cur' : '' }, s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
       const wrap = el('div', {});
       box.append(wrap); host.append(box);
       drawBars(wrap, s, ymax, bs);
@@ -1113,13 +1173,13 @@ if (typeof module !== 'undefined') module.exports = Core;
   }
   function drawBars(wrap, s, ymax, bs) {
     const N = bs.length, daily = bs[0].u === 'd';
-    const W = 400, H = 150, ml = 30, mr = 4, mt = 8, mb = 20;
+    const W = 400, H = 160, ml = 26, mr = 4, mt = 8, mb = 22;
     const iw = W - ml - mr, ih = H - mt - mb, step = iw / N, bw = Math.max(1.2, step - (step > 6 ? 1.6 : 0.6));
     const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Horas de paro de ' + s.n });
     for (const t of [0, ymax / 2, ymax]) {
       const y = mt + ih * (1 - t / ymax);
       svg.append(sv('line', { x1: ml, x2: W - mr, y1: y, y2: y, stroke: 'var(--line)', 'stroke-width': 1 }));
-      const lab = sv('text', { x: ml - 5, y: y + 3.5, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 10, 'font-family': 'var(--f-mono)' });
+      const lab = sv('text', { x: ml - 5, y: y + 3.5, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 11 });
       lab.textContent = nf0.format(t); svg.append(lab);
     }
     const selIdx = daily && s.n === ui.line ? bs.findIndex((b) => b.s === ui.day) : -1;
@@ -1127,7 +1187,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     s.d.forEach((d, i) => {
       if (d.h == null) return;
       const h = Math.max(1, ih * d.h / ymax);
-      svg.append(sv('rect', { x: ml + i * step + (step - bw) / 2, y: mt + ih - h, width: bw, height: h, rx: Math.min(1.5, bw / 2), fill: d.b.e >= ui.s ? 'var(--accent)' : 'var(--bar-mute)' }));
+      svg.append(sv('rect', { x: ml + i * step + (step - bw) / 2, y: mt + ih - h, width: bw, height: h, fill: d.b.e >= ui.s ? 'var(--accent)' : 'var(--bar-mute)' }));
     });
     if (daily) {
       const pts = [];
@@ -1137,11 +1197,11 @@ if (typeof module !== 'undefined') module.exports = Core;
         if (vals.length < 4) return;
         pts.push((ml + i * step + step / 2).toFixed(1) + ',' + (mt + ih * (1 - vals.reduce((p, c) => p + c, 0) / vals.length / ymax)).toFixed(1));
       });
-      if (pts.length > 1) svg.append(sv('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+      if (pts.length > 2) svg.append(sv('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
     }
     const every = Math.max(1, Math.ceil(N / 6));
     for (let i = 0; i < N; i += every) {
-      const t = sv('text', { x: ml + i * step + step / 2, y: H - 5, 'text-anchor': i === 0 ? 'start' : 'middle', fill: 'var(--muted)', 'font-size': 10, 'font-family': 'var(--f-mono)' });
+      const t = sv('text', { x: ml + i * step + step / 2, y: H - 5, 'text-anchor': i === 0 ? 'start' : 'middle', fill: 'var(--muted)', 'font-size': 11 });
       t.textContent = bs[i].u === 'm' ? new Intl.DateTimeFormat('es', { month: 'short', timeZone: 'UTC' }).format(D(bs[i].s)) : dShort.format(D(bs[i].s));
       if (i === 0) t.setAttribute('x', ml); svg.append(t);
     }
@@ -1162,7 +1222,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     const a = store.lines[ui.line];
     if (ui.day < a.desde) ui.day = a.desde;
     if (ui.day > a.hasta) ui.day = a.hasta;
-    $('day-line').replaceChildren(el('i', { class: 'dot', style: '--lc:' + lineColor(ui.line) }), ui.line);
+    $('day-line').textContent = ui.line;
     $('day-when').textContent = dLong.format(D(ui.day));
     $('day-prev').disabled = ui.day <= a.desde;
     $('day-next').disabled = ui.day >= a.hasta;
@@ -1181,7 +1241,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     const mx = Math.max(1, ...top.map((x) => x.min));
     for (const x of top) {
       hb.append(el('div', { class: 'it' },
-        el('div', { class: 'lab' }, el('span', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('span', { class: 'num', text: fDur(x.min) + ' · ' + nf0.format(x.reg) + '×' })),
+        el('div', { class: 'lab' }, el('span', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: '· ' + TL[x.t] }) : null), el('span', { class: 'num', text: fDur(x.min) + ' · ' + nf0.format(x.reg) + '×' })),
         el('div', { class: 'track' }, el('div', { class: 'fill' + (x.t === 'ext' ? ' ext' : ''), style: 'width:' + (100 * x.min / mx).toFixed(1) + '%' })),
         x.note ? el('div', { class: 'nt', text: x.note }) : null));
     }
@@ -1189,7 +1249,7 @@ if (typeof module !== 'undefined') module.exports = Core;
     left.append(hb);
     const right = el('div', {}, el('h3', { text: 'Paros de 30 min o más' }));
     const lg = el('div', { class: 'long' });
-    for (const x of d.largos) lg.append(el('div', { class: 'l' }, el('span', { class: 'num muted', text: x.hora }), el('span', { class: 'num', text: fDur(x.min) }), el('span', { text: x.comp + ' · ' + x.causa }), el('div', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
+    for (const x of d.largos) lg.append(el('div', { class: 'l' }, el('span', { class: 'num dur', text: fDur(x.min) }), el('span', { class: 'num muted', text: x.hora }), el('span', { class: 'what', text: x.comp + ' · ' + x.causa }), el('div', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
     if (!d.largos.length) lg.append(el('div', { class: 'empty', text: 'No hubo paros de 30 min o más este día.' }));
     right.append(lg);
     body.append(el('div', { class: 'two' }, left, right));
@@ -1247,10 +1307,10 @@ if (typeof module !== 'undefined') module.exports = Core;
     for (const k in FLT) fl.append(el('button', { type: 'button', class: 'chip' + (ui.flt === k ? ' on' : ''), 'aria-pressed': String(ui.flt === k), text: FLT[k] + ' ' + cnt[k], onclick: () => { ui.flt = k; renderAll(); } }));
     const rows = all.filter((x) => ui.flt === 'all' || (ui.flt === 'att' ? ATT[x.estado] : (x.estado === 'Mejora' || x.estado === 'Resuelto'))).slice(0, 15);
     const t = $('cmp'); t.replaceChildren();
-    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Equipo · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n hide-s', text: '% del paro' }), el('th', { class: 'n', text: 'Previo' }), el('th', { class: 'n hide-s', text: 'Eventos' }), el('th', { class: 'n hide-s', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
+    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Equipo · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n hide-s', text: '% del paro' }), el('th', { class: 'n hide-s', text: 'Previo' }), el('th', { class: 'n hide-s', text: 'Eventos' }), el('th', { class: 'n hide-s', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
     const tb = el('tbody', {});
-    for (const x of rows) tb.append(el('tr', { class: ATT[x.estado] ? 'att' : '' },
-      el('td', {}, el('b', { text: x.comp }), ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n hide-s', text: tot ? nf0.format(100 * x.h / tot) + '%' : '—' }), el('td', { class: 'n', text: fH(x.hp) }),
+    for (const x of rows) tb.append(el('tr', {},
+      el('td', {}, el('b', { text: x.comp }), ' · ' + x.causa, multi ? el('span', { class: 'tag', text: '· ' + TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n hide-s', text: tot ? nf0.format(100 * x.h / tot) + '%' : '—' }), el('td', { class: 'n hide-s', text: fH(x.hp) }),
       el('td', { class: 'n hide-s', text: nf0.format(x.reg) }), el('td', { class: 'n hide-s', text: x.dias + '/' + n }), el('td', {}, el('span', { class: 'badge ' + BADGE[x.estado], text: x.estado })),
       el('td', { class: 'nota hide-s', text: x.note || '—' })));
     if (!rows.length) tb.append(el('tr', {}, el('td', { colspan: 8, class: 'empty', text: ui.flt === 'all' ? 'Sin paros relevantes en este periodo.' : 'Ninguna causa en este grupo.' })));

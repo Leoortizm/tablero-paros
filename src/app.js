@@ -77,7 +77,7 @@
         if (z.length > 240000) throw new Error('archivo muy grande');
         await cloud.db.doc('lines/' + slug(n)).set({ name: n, cargado: store.lines[n].cargado, hasta: store.lines[n].hasta, z });
       }
-      cloudStatus('Guardado en línea ✓');
+      cloudStatus('Guardado en línea');
     } catch (e) { cloudStatus('No se pudo guardar en línea (' + (e && (e.code || e.message) || 'error') + ')', true); }
   }
   async function cloudStart() {
@@ -104,7 +104,7 @@
       else if (!edit.on) {
         cloudStatus(names().length ? '' : 'Aún no hay datos publicados.');
         if (!names().length) $('nodata').textContent = 'Aún no hay datos publicados.';
-      } else cloudStatus(remote.size ? 'Sincronizado en línea ✓' : 'Aún no hay datos en línea: carga tus reportes');
+      } else cloudStatus(remote.size ? 'Sincronizado en línea' : 'Aún no hay datos en línea: carga tus reportes');
     }, () => cloudStatus('Sin conexión a la base en línea', true));
   }
 
@@ -173,7 +173,7 @@
           loadedNames.add(n);
         }
         const anyGap = names.some((n) => gaps[n]);
-        li.replaceChildren(el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), f.name),
+        li.replaceChildren(el('div', { class: 'fh' }, f.name),
           lineGrid(anyGap ? ['Línea', 'Cargado ahora', 'Total guardado', 'Aviso'] : ['Línea', 'Cargado ahora', 'Total guardado'],
             names.map((n) => [n, rng(out[n].desde, out[n].hasta), rng(store.lines[n].desde, store.lines[n].hasta)].concat(anyGap ? [gaps[n] ? { w: 'Faltan los días ' + gaps[n] } : ''] : []))));
         any = true;
@@ -205,8 +205,6 @@
   const isInternal = () => ui.ty.em && ui.ty.op && !ui.ty.ext;
   const dispLabel = () => (isInternal() ? 'Disponibilidad interna' : 'Disponibilidad (tipos elegidos)');
   const nDays = () => Core.span(ui.s, ui.e);
-  const LPAL = ['var(--b-blue)', 'var(--b-green)', 'var(--b-purple)', 'var(--b-yellow)', 'var(--b-orange)'];
-  const lineColor = (n) => LPAL[Math.max(0, names().indexOf(n)) % LPAL.length];
   const KEEP = /^(L2 Krones|Zegla 30|Zegla 40)$/i; /* solo las líneas de interés */
   const names = () => Object.keys(store.lines).filter((n) => KEEP.test(n)).sort((a, b) => a.localeCompare(b, 'es', { numeric: true }));
   const maxDate = () => names().map((n) => store.lines[n].hasta).sort().pop();
@@ -236,7 +234,7 @@
     if (ui.s > ui.e) ui.s = ui.e;
     if (fromLoad || !ui.day) ui.day = defDay(ui.e);
     if (!$('files').children.length) {
-      $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, el('span', { class: 'ok-mark', text: '✓ ' }), 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
+      $('files').replaceChildren(el('li', {}, el('div', { class: 'fh' }, 'Datos guardados'), lineGrid(['Línea', 'Fechas guardadas'], ns.map((n) => [n, rng(store.lines[n].desde, store.lines[n].hasta)]))));
     }
     $('app').hidden = false;
     refreshNoData();
@@ -258,8 +256,6 @@
   }
 
   function renderControls() {
-    const sl = $('seg-line'); sl.replaceChildren();
-    for (const n of names()) sl.append(el('button', { type: 'button', 'aria-pressed': String(n === ui.line), onclick: () => setLine(n) }, el('i', { class: 'dot', style: '--lc:' + lineColor(n) }), n));
     const mx = maxDate(), mn = minDate();
     const a = $('d-from'), b = $('d-to');
     a.min = b.min = mn; a.max = b.max = mx;
@@ -273,7 +269,7 @@
       sp.append(el('button', { type: 'button', 'aria-pressed': String(ui.s === f && ui.e === mx), text: lab, onclick: () => setPeriod(f, mx) }));
     }
     const ch = $('chip-comp'); ch.replaceChildren(); ch.hidden = !ui.comp;
-    if (ui.comp) ch.append(el('span', { text: 'Equipo' }), el('button', { type: 'button', class: 'chip on', 'aria-label': 'Quitar filtro de equipo ' + ui.comp, onclick: () => { ui.comp = null; renderAll(); } }, ui.comp, ' ✕'));
+    if (ui.comp) ch.append(el('span', { text: 'Equipo' }), el('button', { type: 'button', class: 'chip on', 'aria-label': 'Quitar filtro de equipo ' + ui.comp, onclick: () => { ui.comp = null; renderAll(); } }, ui.comp, ' ×'));
     const st = $('seg-type'); st.replaceChildren();
     for (const k of ['em', 'op', 'ext']) {
       st.append(el('button', { type: 'button', 'aria-pressed': String(!!ui.ty[k]), text: TB[k], onclick: () => {
@@ -308,30 +304,43 @@
   function deltaEl(diff, goodWhenUp, unit, digits) {
     if (diff == null || !isFinite(diff)) return el('span', { class: 'delta flat', text: 'sin comparación' });
     const abs = Math.abs(diff);
-    if (abs < 0.05) return el('span', { class: 'delta flat', text: '= sin cambio' });
+    if (abs < 0.05) return el('span', { class: 'delta flat', text: 'sin cambio' });
     const up = diff > 0;
-    return el('span', { class: 'delta ' + (up === goodWhenUp ? 'good' : 'bad'), text: (up ? '▲ ' : '▼ ') + new Intl.NumberFormat('es', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(abs) + unit });
+    return el('span', { class: 'delta ' + (up === goodWhenUp ? 'good' : 'bad'), text: (up ? '+' : '−') + new Intl.NumberFormat('es', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(abs) + unit });
   }
   function renderKpis() {
     const host = $('kpis'); host.replaceChildren();
     const pr = Core.prevRange(ui.s, ui.e);
     const n = nDays();
-    for (const name of names()) {
+    const ns = names();
+    const lines = el('div', { class: 'kp-lines', style: '--n:' + ns.length, role: 'group', 'aria-label': 'Línea' });
+    let anyPrev = false;
+    for (const name of ns) {
       const a = store.lines[name];
       const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
-      const r = Core.reliability(a, ui.s, ui.e, ui.ty), rp = Core.reliability(a, pr.s, pr.e, ui.ty);
-      const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length;
       const noPrev = pr.e < a.desde;
-      const row = (lab, val, d) => el('div', { class: 'row' }, el('span', { text: lab }), el('span', { class: 'num' }, val, ' ', noPrev ? null : d));
-      host.append(el('button', { type: 'button', class: 'kpi', style: '--lc:' + lineColor(name), 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
-        el('div', { class: 'nm' }, el('h3', { text: name }), el('span', { class: 'muted small', text: rangeText(ui.s, ui.e) })),
-        el('div', {}, el('div', { class: 'muted small', text: dispLabel() }), el('div', { class: 'big', text: w.disp == null ? '—' : fP(w.disp) }),
-          el('div', { class: 'small' }, noPrev ? el('span', { class: 'muted', text: 'sin periodo previo para comparar' }) : [deltaEl(w.disp != null && p.disp != null ? (w.disp - p.disp) * 100 : null, true, ' pts', 1), el('span', { class: 'muted', text: ' vs ' + n + (n === 1 ? ' día' : ' días') + ' previos' })])),
-        row('Horas de paro', fH(w.sel), deltaEl(w.sel - p.sel, false, ' h', 1)),
-        row('Eventos · de 30 min o más', nf0.format(r.reg) + ' · ' + nf0.format(largos), deltaEl(r.reg - rp.reg, false, '', 0)),
-        row('Duración media (MTTR)', r.mttr == null ? '—' : fDur(r.mttr), r.mttr != null && rp.mttr != null ? deltaEl(r.mttr - rp.mttr, false, ' min', 0) : null),
-        row('Tiempo entre paros (MTBF)', r.mtbf == null ? '—' : fH(r.mtbf), r.mtbf != null && rp.mtbf != null ? deltaEl(r.mtbf - rp.mtbf, true, ' h', 1) : null)));
+      if (!noPrev) anyPrev = true;
+      lines.append(el('button', { type: 'button', class: 'kp-line', 'aria-pressed': String(name === ui.line), onclick: () => setLine(name) },
+        el('span', { class: 'nm', text: name }),
+        el('span', { class: 'v', text: w.disp == null ? '—' : fP(w.disp) }),
+        el('span', { class: 's' }, fH(w.sel) + ' de paro', noPrev || w.disp == null || p.disp == null ? null : [' · ', deltaEl((w.disp - p.disp) * 100, true, ' pts', 1)])));
     }
+    host.append(lines);
+    const a = store.lines[ui.line];
+    const w = Core.sumRange(a, ui.s, ui.e, ui.ty), p = Core.sumRange(a, pr.s, pr.e, ui.ty);
+    const r = Core.reliability(a, ui.s, ui.e, ui.ty), rp = Core.reliability(a, pr.s, pr.e, ui.ty);
+    const largos = Core.largosIn(a, ui.s, ui.e, ui.ty).length, largosP = Core.largosIn(a, pr.s, pr.e, ui.ty).length;
+    const noPrev = pr.e < a.desde;
+    const cell = (k, v, d) => el('div', {}, el('span', { class: 'k', text: k }), el('span', { class: 'v' }, v), noPrev ? null : el('span', { class: 'd' }, d || '—'));
+    const unit = (txt) => { const m = /^(.*?)(\s(?:h|min))$/.exec(txt); return m ? [m[1], el('small', { text: m[2] })] : txt; };
+    host.append(el('div', { class: 'kp-det' },
+      cell('Horas de paro', unit(fH(w.sel)), deltaEl(w.sel - p.sel, false, ' h', 1)),
+      cell('Eventos', nf0.format(r.reg), deltaEl(r.reg - rp.reg, false, '', 0)),
+      cell('Paros de 30 min o más', nf0.format(largos), deltaEl(largos - largosP, false, '', 0)),
+      cell('Duración media (MTTR)', r.mttr == null ? '—' : unit(fDur(r.mttr)), r.mttr != null && rp.mttr != null ? deltaEl(r.mttr - rp.mttr, false, ' min', 0) : null),
+      cell('Tiempo entre paros (MTBF)', r.mtbf == null ? '—' : unit(fH(r.mtbf)), r.mtbf != null && rp.mtbf != null ? deltaEl(r.mtbf - rp.mtbf, true, ' h', 1) : null)));
+    $('kp-cap').textContent = 'La cifra grande es la ' + dispLabel().toLowerCase() + ' de cada línea en el periodo. ' +
+      (anyPrev ? 'Los cambios comparan con los ' + n + (n === 1 ? ' día previo' : ' días previos') + ' (' + rangeText(pr.s, pr.e) + ').' : 'Aún no hay un periodo previo cargado para comparar.');
   }
 
   /* ---------- lo importante de la línea ---------- */
@@ -348,20 +357,19 @@
   }
   function renderFocus() {
     const f = focusData();
-    $('focus-title').replaceChildren('Lo importante · ', el('i', { class: 'dot', style: '--lc:' + lineColor(ui.line) }), ui.line);
+    $('focus-title').textContent = 'Paros de ' + ui.line;
     $('focus-sub').textContent = rangeText(ui.s, ui.e) + ' · paro ' + tyText();
     const host = $('focus-body'); host.replaceChildren();
-    if (!f.par.rows.length) { host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
-    const tile = (k, big, txt, onclick) => el(onclick ? 'button' : 'div', Object.assign({ class: 'ins' }, onclick ? { type: 'button', onclick } : {}), el('span', { class: 'k', text: k }), el('b', { text: big }), el('span', { class: 'd', text: txt }));
-    const top = f.par.rows[0];
-    host.append(tile('Dónde se va el tiempo', nf0.format(f.vital[f.vital.length - 1].cum * 100) + '% en ' + f.vital.length + (f.vital.length === 1 ? ' equipo' : ' equipos'),
-      f.vital.slice(0, 3).map((r) => r.k + ' ' + fH(r.h)).join(' · ') + (f.vital.length > 3 ? ' · …' : ''), () => { ui.tab = 'pri'; ui.comp = null; renderAll(); }));
-    host.append(tile('Mayor contribuyente', top.k, fH(top.h) + ' (' + nf0.format(top.pct * 100) + '% del paro) en ' + ev(top.reg), () => { ui.tab = 'pri'; ui.comp = top.k; renderAll(); }));
-    const a0 = f.att[0];
-    host.append(tile('Requieren atención', nf0.format(f.att.length) + (f.att.length === 1 ? ' causa' : ' causas'),
-      a0 ? a0.comp + ' · ' + a0.causa + ' (' + a0.estado.toLowerCase() + ', ' + fH(a0.h) + ')' : 'Nada nuevo, que empeore o que persista.', () => { ui.tab = 'pri'; ui.flt = 'att'; renderAll(); }));
+    if (!f.par.rows.length) { host.append('Sin paros de este tipo en el periodo.'); return; }
+    const go = (txt, onclick) => el('button', { type: 'button', class: 'go', text: txt, onclick });
+    const toTable = (flt) => { ui.tab = 'pri'; ui.flt = flt; renderAll(); $('cmp').scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+    const top = f.par.rows[0], nv = f.vital.length;
+    host.append(el('b', { text: top.k }), ' concentra el ' + nf0.format(top.pct * 100) + '% del paro: ' + fH(top.h) + ' en ' + ev(top.reg) + '. ');
+    if (nv > 1) host.append(nv + ' equipos explican el ' + nf0.format(f.vital[nv - 1].cum * 100) + '%. ');
+    if (f.att.length) host.append(go(nf0.format(f.att.length) + (f.att.length === 1 ? ' causa requiere atención' : ' causas requieren atención'), () => toTable('att')), '. ');
+    else host.append('Ninguna causa nueva, que empeore o que persista. ');
     const l0 = f.largos[0];
-    host.append(tile('Paro más largo', l0 ? fDur(l0.min) : '—', l0 ? l0.comp + ' · ' + dShort.format(D(l0.f)) + (l0.hora ? ' ' + l0.hora : '') : 'Ningún paro de 30 min o más.', l0 ? () => goDay(l0.f) : null));
+    if (l0) host.append('El paro más largo duró ', go(fDur(l0.min) + ' (' + l0.comp + ', ' + dShort.format(D(l0.f)) + (l0.hora ? ' ' + l0.hora : '') + ')', () => goDay(l0.f)), '.');
   }
   function summaryText() {
     const f = focusData(), a = f.a;
@@ -389,7 +397,7 @@
     try { await navigator.clipboard.writeText(txt); ok = true; } catch (e) {
       try { const ta = el('textarea', { style: 'position:fixed;opacity:0' }); ta.value = txt; document.body.append(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch (e2) { ok = false; }
     }
-    const old = btn.textContent; btn.textContent = ok ? 'Copiado ✓' : 'No se pudo copiar';
+    const old = btn.textContent; btn.textContent = ok ? 'Copiado' : 'No se pudo copiar';
     setTimeout(() => { btn.textContent = old; }, 1800);
   }
   function downloadCsv() {
@@ -423,18 +431,21 @@
     const sub = $('par-sub');
     if (!par.rows.length) { sub.textContent = ''; host.append(el('div', { class: 'empty', text: 'Sin paros de este tipo en el periodo.' })); return; }
     let nv = 0; for (const r of par.rows) { nv++; if (r.cum >= 0.8) break; }
-    sub.textContent = nv + ' de ' + par.rows.length + (ui.comp ? ' causas' : ' equipos') + ' explican el ' + nf0.format(par.rows[nv - 1].cum * 100) + '% de ' + fH(par.tot) + '.' + (ui.comp ? '' : ' Toca un equipo para ver sus causas.');
+    sub.textContent = fH(par.tot) + ' de paro en ' + par.rows.length + (ui.comp ? (par.rows.length === 1 ? ' causa.' : ' causas.') : (par.rows.length === 1 ? ' equipo.' : ' equipos.') + ' Toca un equipo para ver sus causas.');
     if (ui.comp) host.append(el('button', { type: 'button', class: 'linklike back', text: '← Todos los equipos', onclick: () => { ui.comp = null; renderAll(); } }));
     const mx = par.rows[0].h;
-    const noPrev = Core.prevRange(ui.s, ui.e).e < a.desde;
+    host.append(el('div', { class: 'hd' }, el('span', { text: ui.comp ? 'Causa' : 'Equipo' }), el('span', {}), el('span', { text: 'Horas' }), el('span', { text: '% paro' }), el('span', { class: 'x', text: 'Acum.' }), el('span', { class: 'x', text: 'Eventos' })));
     par.rows.slice(0, 12).forEach((r, i) => {
       const kids = [
-        el('div', { class: 'lab' }, el('span', { text: r.k }), el('span', { class: 'num' }, fH(r.h), ' ', noPrev ? null : deltaEl(r.h - r.hp, false, ' h', 1))),
+        el('span', { class: 'nm', text: r.k }),
         el('div', { class: 'track' }, el('div', { class: 'fill' + (i < nv ? '' : ' ext'), style: 'width:' + (100 * r.h / mx).toFixed(1) + '%' })),
-        el('div', { class: 'nt num', text: nf0.format(r.pct * 100) + '% del paro · acumulado ' + nf0.format(r.cum * 100) + '% · ' + ev(r.reg) + ' · ' + r.dias + (r.dias === 1 ? ' día' : ' días') })];
-      host.append(ui.comp ? el('div', { class: 'it' }, kids) : el('button', { type: 'button', class: 'it pick', onclick: () => { ui.comp = r.k; renderAll(); } }, kids));
+        el('span', { class: 'n h', text: nf1.format(r.h) }), el('span', { class: 'n', text: nf0.format(r.pct * 100) + '%' }),
+        el('span', { class: 'n x', text: nf0.format(r.cum * 100) + '%' }), el('span', { class: 'n x', text: nf0.format(r.reg) })];
+      const cls = 'it' + (i < nv ? '' : ' rest');
+      host.append(ui.comp ? el('div', { class: cls }, kids) : el('button', { type: 'button', class: cls + ' pick', 'aria-label': r.k + ': ' + fH(r.h) + ', ver sus causas', onclick: () => { ui.comp = r.k; renderAll(); } }, kids));
+      if (i === nv - 1 && par.rows.length > nv) host.append(el('div', { class: 'cut', text: 'Hasta aquí, el ' + nf0.format(r.cum * 100) + '% del paro' }));
     });
-    if (par.rows.length > 12) host.append(el('div', { class: 'small muted', text: 'Y ' + (par.rows.length - 12) + ' más con menos horas.' }));
+    if (par.rows.length > 12) host.append(el('div', { class: 'small muted', style: 'padding:8px', text: 'Y ' + (par.rows.length - 12) + ' más con menos horas.' }));
   }
 
   /* ---------- paros más largos del periodo ---------- */
@@ -445,7 +456,7 @@
     const host = $('lar'); host.replaceChildren();
     if (!list.length) { host.append(el('div', { class: 'empty', text: 'No hubo paros de 30 min o más en el periodo.' })); return; }
     for (const x of list.slice(0, 8)) host.append(el('button', { type: 'button', class: 'l pick', onclick: () => goDay(x.f) },
-      el('span', { class: 'num', text: fDur(x.min) }), el('span', { class: 'num muted', text: dShort.format(D(x.f)) + (x.hora ? ' ' + x.hora : '') }), el('span', { text: x.comp + ' · ' + x.causa }),
+      el('span', { class: 'num dur', text: fDur(x.min) }), el('span', { class: 'num muted', text: dShort.format(D(x.f)) + (x.hora ? ' ' + x.hora : '') }), el('span', { class: 'what', text: x.comp + ' · ' + x.causa }),
       el('span', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
   }
 
@@ -482,7 +493,7 @@
     for (const s of sets) {
       const box = el('div', {});
       const tot = Core.sumRange(s.a, ui.s, ui.e, ui.ty);
-      box.append(el('h3', {}, el('span', {}, el('i', { class: 'dot', style: '--lc:' + lineColor(s.n) }), s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
+      box.append(el('h3', {}, el('span', { class: s.n === ui.line ? 'cur' : '' }, s.n), el('span', { class: 'num muted small', text: fH(tot.sel) + ' en el periodo' })));
       const wrap = el('div', {});
       box.append(wrap); host.append(box);
       drawBars(wrap, s, ymax, bs);
@@ -490,13 +501,13 @@
   }
   function drawBars(wrap, s, ymax, bs) {
     const N = bs.length, daily = bs[0].u === 'd';
-    const W = 400, H = 150, ml = 30, mr = 4, mt = 8, mb = 20;
+    const W = 400, H = 160, ml = 26, mr = 4, mt = 8, mb = 22;
     const iw = W - ml - mr, ih = H - mt - mb, step = iw / N, bw = Math.max(1.2, step - (step > 6 ? 1.6 : 0.6));
     const svg = sv('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Horas de paro de ' + s.n });
     for (const t of [0, ymax / 2, ymax]) {
       const y = mt + ih * (1 - t / ymax);
       svg.append(sv('line', { x1: ml, x2: W - mr, y1: y, y2: y, stroke: 'var(--line)', 'stroke-width': 1 }));
-      const lab = sv('text', { x: ml - 5, y: y + 3.5, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 10, 'font-family': 'var(--f-mono)' });
+      const lab = sv('text', { x: ml - 5, y: y + 3.5, 'text-anchor': 'end', fill: 'var(--muted)', 'font-size': 11 });
       lab.textContent = nf0.format(t); svg.append(lab);
     }
     const selIdx = daily && s.n === ui.line ? bs.findIndex((b) => b.s === ui.day) : -1;
@@ -504,7 +515,7 @@
     s.d.forEach((d, i) => {
       if (d.h == null) return;
       const h = Math.max(1, ih * d.h / ymax);
-      svg.append(sv('rect', { x: ml + i * step + (step - bw) / 2, y: mt + ih - h, width: bw, height: h, rx: Math.min(1.5, bw / 2), fill: d.b.e >= ui.s ? 'var(--accent)' : 'var(--bar-mute)' }));
+      svg.append(sv('rect', { x: ml + i * step + (step - bw) / 2, y: mt + ih - h, width: bw, height: h, fill: d.b.e >= ui.s ? 'var(--accent)' : 'var(--bar-mute)' }));
     });
     if (daily) {
       const pts = [];
@@ -514,11 +525,11 @@
         if (vals.length < 4) return;
         pts.push((ml + i * step + step / 2).toFixed(1) + ',' + (mt + ih * (1 - vals.reduce((p, c) => p + c, 0) / vals.length / ymax)).toFixed(1));
       });
-      if (pts.length > 1) svg.append(sv('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.6, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+      if (pts.length > 2) svg.append(sv('polyline', { points: pts.join(' '), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
     }
     const every = Math.max(1, Math.ceil(N / 6));
     for (let i = 0; i < N; i += every) {
-      const t = sv('text', { x: ml + i * step + step / 2, y: H - 5, 'text-anchor': i === 0 ? 'start' : 'middle', fill: 'var(--muted)', 'font-size': 10, 'font-family': 'var(--f-mono)' });
+      const t = sv('text', { x: ml + i * step + step / 2, y: H - 5, 'text-anchor': i === 0 ? 'start' : 'middle', fill: 'var(--muted)', 'font-size': 11 });
       t.textContent = bs[i].u === 'm' ? new Intl.DateTimeFormat('es', { month: 'short', timeZone: 'UTC' }).format(D(bs[i].s)) : dShort.format(D(bs[i].s));
       if (i === 0) t.setAttribute('x', ml); svg.append(t);
     }
@@ -539,7 +550,7 @@
     const a = store.lines[ui.line];
     if (ui.day < a.desde) ui.day = a.desde;
     if (ui.day > a.hasta) ui.day = a.hasta;
-    $('day-line').replaceChildren(el('i', { class: 'dot', style: '--lc:' + lineColor(ui.line) }), ui.line);
+    $('day-line').textContent = ui.line;
     $('day-when').textContent = dLong.format(D(ui.day));
     $('day-prev').disabled = ui.day <= a.desde;
     $('day-next').disabled = ui.day >= a.hasta;
@@ -558,7 +569,7 @@
     const mx = Math.max(1, ...top.map((x) => x.min));
     for (const x of top) {
       hb.append(el('div', { class: 'it' },
-        el('div', { class: 'lab' }, el('span', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('span', { class: 'num', text: fDur(x.min) + ' · ' + nf0.format(x.reg) + '×' })),
+        el('div', { class: 'lab' }, el('span', {}, x.comp + ' · ' + x.causa, multi ? el('span', { class: 'tag', text: '· ' + TL[x.t] }) : null), el('span', { class: 'num', text: fDur(x.min) + ' · ' + nf0.format(x.reg) + '×' })),
         el('div', { class: 'track' }, el('div', { class: 'fill' + (x.t === 'ext' ? ' ext' : ''), style: 'width:' + (100 * x.min / mx).toFixed(1) + '%' })),
         x.note ? el('div', { class: 'nt', text: x.note }) : null));
     }
@@ -566,7 +577,7 @@
     left.append(hb);
     const right = el('div', {}, el('h3', { text: 'Paros de 30 min o más' }));
     const lg = el('div', { class: 'long' });
-    for (const x of d.largos) lg.append(el('div', { class: 'l' }, el('span', { class: 'num muted', text: x.hora }), el('span', { class: 'num', text: fDur(x.min) }), el('span', { text: x.comp + ' · ' + x.causa }), el('div', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
+    for (const x of d.largos) lg.append(el('div', { class: 'l' }, el('span', { class: 'num dur', text: fDur(x.min) }), el('span', { class: 'num muted', text: x.hora }), el('span', { class: 'what', text: x.comp + ' · ' + x.causa }), el('div', { class: 'nt', text: x.note || 'Sin comentario en Atlas' })));
     if (!d.largos.length) lg.append(el('div', { class: 'empty', text: 'No hubo paros de 30 min o más este día.' }));
     right.append(lg);
     body.append(el('div', { class: 'two' }, left, right));
@@ -624,10 +635,10 @@
     for (const k in FLT) fl.append(el('button', { type: 'button', class: 'chip' + (ui.flt === k ? ' on' : ''), 'aria-pressed': String(ui.flt === k), text: FLT[k] + ' ' + cnt[k], onclick: () => { ui.flt = k; renderAll(); } }));
     const rows = all.filter((x) => ui.flt === 'all' || (ui.flt === 'att' ? ATT[x.estado] : (x.estado === 'Mejora' || x.estado === 'Resuelto'))).slice(0, 15);
     const t = $('cmp'); t.replaceChildren();
-    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Equipo · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n hide-s', text: '% del paro' }), el('th', { class: 'n', text: 'Previo' }), el('th', { class: 'n hide-s', text: 'Eventos' }), el('th', { class: 'n hide-s', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
+    t.append(el('thead', {}, el('tr', {}, el('th', { text: 'Equipo · causa' }), el('th', { class: 'n', text: 'Periodo' }), el('th', { class: 'n hide-s', text: '% del paro' }), el('th', { class: 'n hide-s', text: 'Previo' }), el('th', { class: 'n hide-s', text: 'Eventos' }), el('th', { class: 'n hide-s', text: 'Días' }), el('th', { text: 'Estado' }), el('th', { class: 'hide-s', text: 'Comentario más repetido' }))));
     const tb = el('tbody', {});
-    for (const x of rows) tb.append(el('tr', { class: ATT[x.estado] ? 'att' : '' },
-      el('td', {}, el('b', { text: x.comp }), ' · ' + x.causa, multi ? el('span', { class: 'tag', text: TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n hide-s', text: tot ? nf0.format(100 * x.h / tot) + '%' : '—' }), el('td', { class: 'n', text: fH(x.hp) }),
+    for (const x of rows) tb.append(el('tr', {},
+      el('td', {}, el('b', { text: x.comp }), ' · ' + x.causa, multi ? el('span', { class: 'tag', text: '· ' + TL[x.t] }) : null), el('td', { class: 'n', text: fH(x.h) }), el('td', { class: 'n hide-s', text: tot ? nf0.format(100 * x.h / tot) + '%' : '—' }), el('td', { class: 'n hide-s', text: fH(x.hp) }),
       el('td', { class: 'n hide-s', text: nf0.format(x.reg) }), el('td', { class: 'n hide-s', text: x.dias + '/' + n }), el('td', {}, el('span', { class: 'badge ' + BADGE[x.estado], text: x.estado })),
       el('td', { class: 'nota hide-s', text: x.note || '—' })));
     if (!rows.length) tb.append(el('tr', {}, el('td', { colspan: 8, class: 'empty', text: ui.flt === 'all' ? 'Sin paros relevantes en este periodo.' : 'Ninguna causa en este grupo.' })));
